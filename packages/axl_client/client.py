@@ -177,6 +177,33 @@ class AxlClient:
         except ValueError:
             return len(data)
 
+    # ---------------------------------------------------------------- peers
+
+    def all_peer_ids(self) -> list[str]:
+        """Enumerate every reachable peer id, deduplicated, with self removed.
+
+        Ports the autoresearch demo's algorithm verbatim
+        (research_network.py:214-234):
+        - call /topology
+        - take the public_key of every direct peer that is `up`
+        - union with the public_key of every entry in the tree
+        - discard our own public_key
+        - return the unsorted list
+
+        Set ordering is not guaranteed. Sort at the call site if order matters.
+        """
+        topo = self.get_topology()
+        ours = topo.our_public_key
+        ids: set[str] = set()
+        for p in topo.peers:
+            if p.up and p.public_key:
+                ids.add(p.public_key)
+        for t in topo.tree:
+            if t.public_key:
+                ids.add(t.public_key)
+        ids.discard(ours)
+        return list(ids)
+
     # ---------------------------------------------------------------------- recv
 
     def recv(self) -> ReceivedMessage | None:
