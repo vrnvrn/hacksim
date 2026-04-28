@@ -5,6 +5,7 @@ multiplexes their events into a single SSE feed, and serves the web UI.
 from .spawner import (
     NodeHandle,
     NodeSpec,
+    RoleHandle,
     Spawner,
     SpawnerError,
 )
@@ -16,6 +17,7 @@ from .sse import (
 __all__ = [
     "NodeHandle",
     "NodeSpec",
+    "RoleHandle",
     "Spawner",
     "SpawnerError",
     "Event",

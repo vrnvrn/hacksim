@@ -35,8 +35,9 @@ def fake_keygen():
 
 @pytest.fixture
 def fake_popen():
-    """Substitute for subprocess.Popen. Returns a MagicMock with .poll, .wait, .terminate, .kill."""
+    """Substitute for subprocess.Popen. Returns a MagicMock; records args+kwargs."""
     processes: list[MagicMock] = []
+    calls: list[dict] = []
 
     def popen(*args, **kwargs):
         proc = MagicMock()
@@ -46,9 +47,11 @@ def fake_popen():
         proc.terminate = MagicMock()
         proc.kill = MagicMock()
         processes.append(proc)
+        calls.append({"args": args, "kwargs": kwargs})
         return proc
 
     popen.processes = processes  # type: ignore[attr-defined]
+    popen.calls = calls  # type: ignore[attr-defined]
     return popen
 
 
@@ -194,6 +197,63 @@ class TestErrorPaths:
         # The popen mock should have been terminated.
         assert len(fake_popen.processes) == 1
         fake_popen.processes[0].terminate.assert_called_once()
+
+
+class TestSpawnRole:
+    def test_spawn_role_starts_axl_node_then_worker(self, spawner, fake_popen):
+        handle = spawner.spawn_role(role="organiser", is_bootstrap=True)
+
+        # First popen call: the AXL node. Second: the Python worker.
+        assert len(fake_popen.calls) == 2
+
+        node_call = fake_popen.calls[0]
+        worker_call = fake_popen.calls[1]
+
+        node_argv = node_call["args"][0]
+        assert "axl_bin" in node_argv[0]
+        assert "-config" in node_argv
+
+        worker_argv = worker_call["args"][0]
+        assert worker_argv[-3:] == ["-m", "packages.agents.worker", ] or (
+            "packages.agents.worker" in worker_argv
+        )
+        assert handle.role == "organiser"
+        assert handle.node.is_running()
+
+    def test_worker_env_carries_axl_port_role_sim_id(self, spawner, fake_popen):
+        handle = spawner.spawn_role(role="builder", index=4)
+        worker_call = fake_popen.calls[1]
+        env = worker_call["kwargs"]["env"]
+        assert env["AXL_API_PORT"] == str(handle.node.api_port)
+        assert env["HACKSIM_ROLE"] == "builder"
+        assert env["HACKSIM_SIM_ID"] == spawner.sim_id
+        assert "PYTHONPATH" in env
+
+    def test_two_roles_get_distinct_api_ports(self, spawner, fake_popen):
+        a = spawner.spawn_role(role="organiser", is_bootstrap=True)
+        b = spawner.spawn_role(role="builder", index=0)
+        c = spawner.spawn_role(role="builder", index=1)
+        ports = {a.node.api_port, b.node.api_port, c.node.api_port}
+        assert len(ports) == 3
+
+    def test_role_handles_property(self, spawner, fake_popen):
+        spawner.spawn_role(role="organiser", is_bootstrap=True)
+        spawner.spawn_role(role="builder", index=0)
+        roles = spawner.role_handles
+        assert [r.role for r in roles] == ["organiser", "builder"]
+
+    def test_stop_all_terminates_workers_then_nodes(self, spawner, fake_popen):
+        spawner.spawn_role(role="organiser", is_bootstrap=True)
+        spawner.spawn_role(role="builder", index=0)
+        # 2 nodes + 2 workers = 4 popen calls
+        assert len(fake_popen.processes) == 4
+
+        spawner.stop_all()
+
+        # All processes should have received terminate.
+        for proc in fake_popen.processes:
+            proc.terminate.assert_called()
+        assert spawner.role_handles == []
 
 
 class TestPortAllocation:

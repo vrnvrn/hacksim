@@ -92,6 +92,41 @@ class NodeHandle:
             self.process.wait(timeout=timeout)
 
 
+@dataclass
+class RoleHandle:
+    """A running role: one AXL node plus one Python worker process.
+
+    The worker process is launched with three env vars set:
+    AXL_API_PORT, HACKSIM_ROLE, HACKSIM_SIM_ID. It dispatches by role
+    inside packages/agents/worker.py.
+    """
+
+    node: NodeHandle
+    worker: subprocess.Popen
+    role: str
+    sim_id: str
+    worker_log_path: Path
+
+    @property
+    def api_url(self) -> str:
+        return self.node.api_url
+
+    def is_running(self) -> bool:
+        return self.node.is_running() and self.worker.poll() is None
+
+    def stop(self, timeout: float = 5.0) -> None:
+        # Stop the worker first so it gets a clean SIGTERM and emits
+        # worker.stopped before the AXL node disappears underneath it.
+        if self.worker.poll() is None:
+            self.worker.terminate()
+            try:
+                self.worker.wait(timeout=timeout)
+            except subprocess.TimeoutExpired:
+                self.worker.kill()
+                self.worker.wait(timeout=timeout)
+        self.node.stop(timeout=timeout)
+
+
 class Spawner:
     """Brings up and tears down a population of AXL nodes for one simulation.
 
@@ -113,6 +148,8 @@ class Spawner:
         bootstrap_listen: str = DEFAULT_BOOTSTRAP_LISTEN,
         api_port_base: int = DEFAULT_API_PORT_BASE,
         startup_timeout: float = DEFAULT_STARTUP_TIMEOUT,
+        python_bin: str | None = None,
+        sim_id: str = "sim_default",
         keygen: callable | None = None,
         popen: callable | None = None,
         wait_ready: callable | None = None,
@@ -122,10 +159,13 @@ class Spawner:
         self.bootstrap_listen = bootstrap_listen
         self.api_port_base = api_port_base
         self.startup_timeout = startup_timeout
+        self.python_bin = python_bin or _find_python()
+        self.sim_id = sim_id
         self._keygen = keygen or _gen_ed25519_pem
         self._popen = popen or subprocess.Popen
         self._wait_ready = wait_ready or _wait_for_api
         self._handles: list[NodeHandle] = []
+        self._roles: list[RoleHandle] = []
         self._next_port = api_port_base
         self._bootstrap_seen = False
 
@@ -202,15 +242,86 @@ class Spawner:
             self._bootstrap_seen = True
         return handle
 
+    # ---------------------------------------------------------------- spawn_role
+
+    def spawn_role(
+        self,
+        *,
+        role: str,
+        index: int = 0,
+        is_bootstrap: bool = False,
+        repo_root: Path | None = None,
+    ) -> RoleHandle:
+        """Boot one AXL node + one Python role worker process.
+
+        The worker subprocess runs `python -m packages.agents.worker` with
+        AXL_API_PORT, HACKSIM_ROLE, HACKSIM_SIM_ID exported. Stdout is
+        captured to `<work_dir>/<role>.<index>.worker.log` so the
+        orchestrator can tail it for SSE.
+        """
+        name = role if index == 0 and is_bootstrap else f"{role}.{index}"
+        node = self.spawn(NodeSpec(name=name, is_bootstrap=is_bootstrap))
+
+        repo_root = repo_root or _find_repo_root()
+        env = {
+            **os.environ,
+            "AXL_API_PORT": str(node.api_port),
+            "HACKSIM_ROLE": role,
+            "HACKSIM_SIM_ID": self.sim_id,
+            "PYTHONPATH": f"{repo_root}{os.pathsep}{os.environ.get('PYTHONPATH', '')}".rstrip(os.pathsep),
+        }
+
+        worker_log = node.work_dir / f"{name}.worker.log"
+        worker_log_file = open(worker_log, "w")
+
+        try:
+            worker = self._popen(
+                [self.python_bin, "-m", "packages.agents.worker"],
+                stdout=worker_log_file,
+                stderr=subprocess.STDOUT,
+                cwd=repo_root,
+                env=env,
+            )
+        except Exception as e:
+            worker_log_file.close()
+            node.stop()
+            raise SpawnerError(f"failed to launch worker for {name}: {e}") from e
+
+        handle = RoleHandle(
+            node=node,
+            worker=worker,
+            role=role,
+            sim_id=self.sim_id,
+            worker_log_path=worker_log,
+        )
+        self._roles.append(handle)
+        return handle
+
     # --------------------------------------------------------------- lifecycle
 
     @property
     def handles(self) -> list[NodeHandle]:
         return list(self._handles)
 
+    @property
+    def role_handles(self) -> list[RoleHandle]:
+        return list(self._roles)
+
     def stop_all(self, timeout: float = 5.0) -> None:
-        """Stop every spawned node. Bootstrap last so peers shut down first."""
+        """Stop every spawned role and node. Workers first (so they emit
+        worker.stopped), then nodes in reverse spawn order so the
+        bootstrap goes last."""
+        for r in reversed(self._roles):
+            try:
+                r.stop(timeout=timeout)
+            except Exception:
+                pass
+        self._roles.clear()
+        # Stop any nodes that were spawned without a role (rare).
+        nodes_with_role_ids = {id(r.node) for r in self._roles}
         for h in reversed(self._handles):
+            if id(h) in nodes_with_role_ids:
+                continue
             try:
                 h.stop(timeout=timeout)
             except Exception:
@@ -273,3 +384,19 @@ def _wait_for_api(api_url: str, deadline: float) -> None:
             pass
         time.sleep(0.1)
     raise TimeoutError(f"AXL node at {api_url} did not become ready before deadline")
+
+
+def _find_python() -> str:
+    """Return a path to the Python executable to use for role workers.
+
+    Prefers the venv that runs the orchestrator, falling back to the
+    interpreter on PATH. The role workers must use the same env so
+    the packages namespace resolves.
+    """
+    import sys
+    return sys.executable
+
+
+def _find_repo_root() -> Path:
+    """Find the HackSim repo root from this module's location."""
+    return Path(__file__).resolve().parents[2]
