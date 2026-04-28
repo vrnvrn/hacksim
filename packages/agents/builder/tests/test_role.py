@@ -41,6 +41,8 @@ def state(fake, monkeypatch) -> WorkerState:
     s.team_formed = False  # type: ignore[attr-defined]
     s.chosen_bounty = None  # type: ignore[attr-defined]
     s.team_id = None  # type: ignore[attr-defined]
+    s.submitted = False  # type: ignore[attr-defined]
+    s.sim_prompt = ""  # type: ignore[attr-defined]
     return s
 
 
