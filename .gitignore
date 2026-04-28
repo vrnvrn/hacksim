@@ -1,0 +1,44 @@
+# Working notes, plans, specs that should not ship to the OSS repo
+refs/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+.turbo/
+dist/
+build/
+
+# OS / editor
+.DS_Store
+*.swp
+.vscode/
+.idea/
+
+# AXL runtime artefacts
+*.pem
+node-keys/
+node-runtime/
+node-config-*.json
+
+# Build outputs
+third_party/axl/node
+third_party/axl/build/
+
+# Local env
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+sim-runs/
