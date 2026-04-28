@@ -8,10 +8,16 @@ from .spawner import (
     Spawner,
     SpawnerError,
 )
+from .sse import (
+    Event,
+    SseHub,
+)
 
 __all__ = [
     "NodeHandle",
     "NodeSpec",
     "Spawner",
     "SpawnerError",
+    "Event",
+    "SseHub",
 ]
