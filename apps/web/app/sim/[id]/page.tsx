@@ -8,6 +8,7 @@ import { Verdicts } from "@/components/Verdicts";
 import { StatPill } from "@/components/StatPill";
 import { PhasePill } from "@/components/PhasePill";
 import { RunLog } from "@/components/RunLog";
+import { RefreshTicker } from "@/components/RefreshTicker";
 import { SubmissionsGrid } from "@/components/SubmissionsGrid";
 import { getSnapshot } from "@/lib/api";
 import { headers } from "next/headers";
@@ -44,6 +45,7 @@ export default async function SimPage({
 
   return (
     <>
+      <RefreshTicker initialPhase={snapshot.phase} />
       <Nav />
       <main className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-x-8 max-w-7xl mx-auto px-6 lg:px-8 pt-10 pb-24">
         <div className="min-w-0">

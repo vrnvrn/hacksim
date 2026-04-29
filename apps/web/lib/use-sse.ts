@@ -28,14 +28,36 @@ export function useSse(
     es.onopen = () => setConnected(true);
     es.onerror = () => setConnected(false);
 
+    // The orchestrator's SseHub writes events as:
+    //
+    //   id: <seq>
+    //   event: <envelope.type>
+    //   data: <json of the payload>
+    //
+    // EventSource exposes the SSE event name as `ev.type`, the payload as
+    // `ev.data`. Default `onmessage` only fires for events whose SSE name is
+    // "message", so we subscribe addEventListener for every type the
+    // orchestrator emits. The handler synthesises an Envelope from those two
+    // pieces plus the sender id sniffed off the payload.
     const handle = (ev: MessageEvent<string>) => {
       try {
-        const parsed = JSON.parse(ev.data) as Envelope;
-        onEventRef.current(parsed);
+        const payload = JSON.parse(ev.data) as Record<string, unknown>;
+        const type =
+          ev.type === "message"
+            ? String((payload.type as string | undefined) ?? "message")
+            : ev.type;
+        const envelope: Envelope = {
+          type,
+          data: payload,
+          ts: new Date().toISOString(),
+          from:
+            (payload.sender_id as string | undefined) ??
+            (payload.judge_peer_id as string | undefined) ??
+            (payload.sponsor_peer_id as string | undefined) ??
+            (payload.peer_id as string | undefined),
+        };
+        onEventRef.current(envelope);
       } catch {
-        // Malformed envelope. Drop it; the run-log will skip a tick. The
-        // backend writes one envelope per data: line, so a parse failure is
-        // a real bug and surfaces in dev as a console warning.
         if (typeof console !== "undefined") {
           console.warn("[hacksim] dropped malformed SSE envelope");
         }
@@ -43,16 +65,48 @@ export function useSse(
     };
 
     es.onmessage = handle;
-    // Backend also emits typed events; subscribe to the union.
+    // Listen for every named event the orchestrator emits. Worker-internal
+    // and runtime events also flow through so the run log catches every
+    // transition.
     const TYPES = [
+      "sim.created",
+      "sim.spawned",
+      "sim.start_error",
+      "organiser.scheduled",
+      "phase.tick",
+      "phase.tick.broadcast",
       "bounty.posted",
+      "bounty.broadcast",
+      "designer.composing",
+      "designer.heard_prompt",
       "team.forming",
       "team.formed",
+      "team.broadcast",
+      "builder.registered",
+      "builder.heard_bounty",
+      "builder.no_bounty",
+      "builder.no_team",
+      "builder.building",
+      "builder.build_error",
       "project.submitted",
+      "project.broadcast",
+      "judge.heard_project",
+      "judge.no_projects",
       "rubric.published",
+      "rubric.broadcast",
       "verdict.published",
-      "phase.tick",
+      "verdict.broadcast",
       "hackathon.closed",
+      "hackathon.closed.broadcast",
+      "orch.registered",
+      "orch.register_error",
+      "worker.started",
+      "worker.stopped",
+      "worker.error",
+      "worker.handler_error",
+      "worker.gossip_error",
+      "worker.skipped",
+      "envelope.unhandled",
     ];
     for (const t of TYPES) {
       es.addEventListener(t, (ev) => handle(ev as MessageEvent<string>));

@@ -26,6 +26,12 @@ class FakeEventSource {
     this.onmessage?.(ev);
   }
 
+  emitTyped(type: string, payload: unknown) {
+    const ev = new MessageEvent(type, { data: JSON.stringify(payload) });
+    const handlers = this.listeners.get(type) ?? [];
+    for (const h of handlers) h(ev);
+  }
+
   close() {}
 }
 
@@ -48,11 +54,11 @@ describe("RunLog", () => {
     ).toBeInTheDocument();
     const es = FakeEventSource.instances[0]!;
     await act(async () => {
-      es.emit({
-        type: "bounty.posted",
-        from: "f".repeat(64),
-        ts: "2026-04-28T14:22:15Z",
-        data: { title: "Best UX" },
+      es.emitTyped("bounty.posted", {
+        id: "bnt_1",
+        title: "Best UX",
+        sponsor_name: "FoldLab",
+        sender_id: "f".repeat(64),
       });
     });
     expect(screen.getByText("bounty.posted")).toBeInTheDocument();
