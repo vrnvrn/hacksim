@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Permit Pong</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Permit Pong</h1>
+      <p>W / S for left paddle. Up / Down for right. Each rally hit logs a permit. First to ten wins.</p>
+    </header>
+    <main>
+      <canvas id="board" width="640" height="360" aria-label="Two-paddle pong game"></canvas>
+      <section id="log" aria-live="polite" aria-label="Permit log">
+        <h2>Permit log</h2>
+        <ol id="permits"></ol>
+      </section>
+    </main>
+    <script type="module" src="app.js"></script>
+  </body>
+</html>

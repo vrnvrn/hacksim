@@ -1,0 +1,12 @@
+{
+  "project_id": "proj_d3vis",
+  "commit_hash": "1a2b3c4d5e6f7890abcdef1234567890",
+  "entry_path": "index.html",
+  "github_url": null,
+  "files": [
+    { "path": "index.html", "size_bytes": 2400, "kind": "text" },
+    { "path": "style.css", "size_bytes": 900, "kind": "text" },
+    { "path": "app.js", "size_bytes": 3800, "kind": "text" },
+    { "path": "data.js", "size_bytes": 1300, "kind": "text" }
+  ]
+}

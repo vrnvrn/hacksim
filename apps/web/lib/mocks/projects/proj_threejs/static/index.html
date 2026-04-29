@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Permit Cathedral</title>
+    <link rel="stylesheet" href="style.css" />
+    <script type="importmap">
+      { "imports": { "three": "https://esm.sh/three@0.160.0" } }
+    </script>
+  </head>
+  <body>
+    <header>
+      <h1>Permit Cathedral</h1>
+      <p>Six glowing columns, one per peer. Click a column to pulse it. Drag to orbit. The columns glow brighter as the mesh fills with envelopes.</p>
+    </header>
+    <main>
+      <canvas id="scene" aria-label="Three.js cathedral scene"></canvas>
+    </main>
+    <script type="module" src="app.js"></script>
+  </body>
+</html>

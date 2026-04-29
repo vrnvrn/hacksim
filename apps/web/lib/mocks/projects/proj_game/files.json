@@ -1,0 +1,11 @@
+{
+  "project_id": "proj_game",
+  "commit_hash": "fedcba9876543210fedcba9876543210",
+  "entry_path": "index.html",
+  "github_url": null,
+  "files": [
+    { "path": "index.html", "size_bytes": 1800, "kind": "text" },
+    { "path": "style.css", "size_bytes": 1100, "kind": "text" },
+    { "path": "app.js", "size_bytes": 4600, "kind": "text" }
+  ]
+}
