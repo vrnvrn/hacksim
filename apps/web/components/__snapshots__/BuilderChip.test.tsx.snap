@@ -1,0 +1,35 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`BuilderChip > matches the default snapshot 1`] = `
+<button
+  aria-controls="radix-_r_2_"
+  aria-expanded="false"
+  aria-haspopup="dialog"
+  aria-label="Builder Aiko Tanaka, 3 skills"
+  class="group flex items-center gap-3 rounded-2xl border border-border bg-surface px-3 py-2 hover:border-muted transition text-left"
+  data-state="closed"
+  type="button"
+>
+  <span
+    aria-hidden="true"
+    class="h-9 w-9 rounded-full bg-accent-soft text-accent font-semibold flex items-center justify-center text-sm"
+  >
+    AT
+  </span>
+  <span
+    class="min-w-0"
+  >
+    <span
+      class="block font-semibold text-sm text-ink truncate"
+    >
+      Aiko Tanaka
+    </span>
+    <span
+      class="block text-xs text-muted truncate"
+    >
+      typescript, three.js
+      ...
+    </span>
+  </span>
+</button>
+`;

@@ -1,0 +1,75 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Verdicts > matches the default snapshot 1`] = `
+<div
+  class="overflow-x-auto"
+>
+  <table
+    class="w-full text-sm border-collapse"
+  >
+    <thead>
+      <tr
+        class="border-b border-border"
+      >
+        <th
+          class="text-left text-xs uppercase tracking-wide font-semibold text-muted py-2"
+        >
+          Project
+        </th>
+        <th
+          class="text-left text-xs uppercase tracking-wide font-semibold text-muted py-2"
+        >
+          Judges
+        </th>
+        <th
+          class="text-right text-xs uppercase tracking-wide font-semibold text-muted py-2"
+        >
+          Average
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr
+        class="border-b border-border/60"
+      >
+        <td
+          class="py-3 font-mono text-xs text-body"
+        >
+          proj_1
+        </td>
+        <td
+          class="py-3 text-xs text-body"
+        >
+          1
+           of 3
+        </td>
+        <td
+          class="py-3 text-right font-mono tabular-nums text-ink"
+        >
+          7.50
+        </td>
+      </tr>
+      <tr
+        class="border-b border-border/60"
+      >
+        <td
+          class="py-3 font-mono text-xs text-body"
+        >
+          proj_2
+        </td>
+        <td
+          class="py-3 text-xs text-body"
+        >
+          1
+           of 3
+        </td>
+        <td
+          class="py-3 text-right font-mono tabular-nums text-ink"
+        >
+          6.00
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+`;

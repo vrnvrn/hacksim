@@ -1,0 +1,103 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Footer > matches the default snapshot 1`] = `
+<footer
+  class="bg-canvas mt-24 py-16"
+  role="contentinfo"
+>
+  <div
+    class="max-w-7xl mx-auto px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-12"
+  >
+    <div>
+      <h2
+        class="font-display font-semibold text-xl text-ink"
+      >
+        HackSim
+      </h2>
+      <p
+        class="text-body text-sm mt-3 max-w-xs leading-relaxed"
+      >
+        Run your own hackathon with agents. Open source, MIT, built on Gensyn AXL.
+      </p>
+    </div>
+    <div>
+      <h3
+        class="text-sm font-semibold uppercase tracking-wide text-muted"
+      >
+        Built on
+      </h3>
+      <ul
+        class="mt-3 space-y-2 text-sm"
+      >
+        <li>
+          <a
+            class="text-body hover:text-ink transition"
+            href="https://docs.gensyn.ai/tech/agent-exchange-layer"
+            rel="noreferrer"
+            target="_blank"
+          >
+            AXL, the Agent eXchange Layer
+          </a>
+        </li>
+        <li>
+          <a
+            class="text-body hover:text-ink transition"
+            href="https://github.com/gensyn-ai/collaborative-autoresearch-demo"
+            rel="noreferrer"
+            target="_blank"
+          >
+            collaborative-autoresearch-demo
+          </a>
+        </li>
+        <li>
+          <a
+            class="text-body hover:text-ink transition"
+            href="https://docs.anthropic.com/claude/docs/claude-code"
+            rel="noreferrer"
+            target="_blank"
+          >
+            Claude Code
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3
+        class="text-sm font-semibold uppercase tracking-wide text-muted"
+      >
+        Code
+      </h3>
+      <ul
+        class="mt-3 space-y-2 text-sm"
+      >
+        <li>
+          <a
+            class="text-body hover:text-ink transition"
+            href="https://github.com/gensyn-ai/axl"
+            rel="noreferrer"
+            target="_blank"
+          >
+            GitHub
+          </a>
+        </li>
+        <li>
+          <a
+            class="text-body hover:text-ink transition"
+            href="/docs"
+          >
+            Docs
+          </a>
+        </li>
+        <li>
+          <a
+            class="text-body hover:text-ink transition"
+            href="/examples"
+          >
+            Examples
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</footer>
+`;

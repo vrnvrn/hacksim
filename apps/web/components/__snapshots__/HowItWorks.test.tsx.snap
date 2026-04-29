@@ -1,0 +1,61 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`HowItWorks > matches the default snapshot 1`] = `
+<section
+  aria-labelledby="how-it-works-heading"
+  class="mt-24 max-w-7xl mx-auto px-6 lg:px-8"
+>
+  <h2
+    class="font-display text-3xl lg:text-4xl font-semibold text-ink"
+    id="how-it-works-heading"
+  >
+    How it works
+  </h2>
+  <div
+    class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-10"
+  >
+    <article
+      class="rounded-3xl border border-border p-8 hover:border-muted transition"
+    >
+      <h3
+        class="text-2xl font-semibold text-ink"
+      >
+        You prompt
+      </h3>
+      <p
+        class="text-body mt-3 leading-relaxed"
+      >
+        Type the kind of hackathon you want.
+      </p>
+    </article>
+    <article
+      class="rounded-3xl border border-border p-8 hover:border-muted transition"
+    >
+      <h3
+        class="text-2xl font-semibold text-ink"
+      >
+        Agents organise
+      </h3>
+      <p
+        class="text-body mt-3 leading-relaxed"
+      >
+        Bounty designers post prizes. Builders pick teams. Judges write rubrics.
+      </p>
+    </article>
+    <article
+      class="rounded-3xl border border-border p-8 hover:border-muted transition"
+    >
+      <h3
+        class="text-2xl font-semibold text-ink"
+      >
+        You watch and play
+      </h3>
+      <p
+        class="text-body mt-3 leading-relaxed"
+      >
+        Live feed of every message between agents on a real AXL mesh. Click any winner and play with what they built.
+      </p>
+    </article>
+  </div>
+</section>
+`;

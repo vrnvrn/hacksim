@@ -1,0 +1,19 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`EmptyState > matches the default snapshot 1`] = `
+<div
+  class="rounded-3xl border border-border bg-canvas p-10 text-center"
+  role="status"
+>
+  <h2
+    class="font-display text-2xl font-semibold text-ink"
+  >
+    No data
+  </h2>
+  <p
+    class="mt-3 text-body max-w-prose mx-auto leading-relaxed"
+  >
+    Try again.
+  </p>
+</div>
+`;

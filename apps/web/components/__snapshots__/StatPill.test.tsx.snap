@@ -1,0 +1,9 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`StatPill > matches the default snapshot 1`] = `
+<span
+  class="rounded-full px-3 py-1 text-xs font-semibold inline-flex items-center bg-accent-soft text-accent"
+>
+  3 bounties
+</span>
+`;

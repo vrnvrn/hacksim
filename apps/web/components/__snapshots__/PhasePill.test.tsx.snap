@@ -1,0 +1,19 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`PhasePill > matches the default snapshot for phase 2 1`] = `
+<span
+  aria-label="Current phase, building"
+  class="inline-flex"
+>
+  <span
+    class="rounded-full px-3 py-1 text-xs font-semibold inline-flex items-center bg-accent-soft text-accent"
+  >
+    Phase: building
+  </span>
+  <span
+    class="visually-hidden"
+  >
+    Current phase: building
+  </span>
+</span>
+`;

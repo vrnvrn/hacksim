@@ -1,0 +1,136 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`VerdictPanel > matches the default snapshot 1`] = `
+<div
+  class="p-6 space-y-6"
+>
+  <header>
+    <h2
+      class="font-display text-2xl font-semibold text-ink"
+    >
+      Verdict
+    </h2>
+    <p
+      class="text-sm text-body mt-1"
+    >
+      Average: 
+      7.6
+      /10. Median: 
+      7.6
+      .
+       
+      1
+       judges scored.
+    </p>
+  </header>
+  <section
+    class="rounded-2xl border border-border bg-canvas p-5"
+  >
+    <h3
+      class="font-semibold text-ink"
+    >
+      Rubric
+    </h3>
+    <ul
+      class="mt-3 space-y-2"
+    >
+      <li
+        class="flex items-start justify-between gap-4 text-sm"
+      >
+        <div>
+          <p
+            class="font-medium text-ink"
+          >
+            Functionality
+          </p>
+          <p
+            class="text-muted text-xs"
+          >
+            Works.
+          </p>
+        </div>
+        <span
+          class="text-xs font-mono text-body"
+        >
+          60
+          %
+        </span>
+      </li>
+      <li
+        class="flex items-start justify-between gap-4 text-sm"
+      >
+        <div>
+          <p
+            class="font-medium text-ink"
+          >
+            Design
+          </p>
+          <p
+            class="text-muted text-xs"
+          >
+            Pretty.
+          </p>
+        </div>
+        <span
+          class="text-xs font-mono text-body"
+        >
+          40
+          %
+        </span>
+      </li>
+    </ul>
+  </section>
+  <section>
+    <h3
+      class="font-semibold text-ink"
+    >
+      Per-judge scores
+    </h3>
+    <div
+      class="mt-3 space-y-3"
+    >
+      <article
+        class="rounded-2xl border border-border bg-surface overflow-hidden"
+      >
+        <button
+          aria-expanded="false"
+          class="w-full flex items-center justify-between gap-3 p-4 hover:bg-canvas transition text-left"
+          type="button"
+        >
+          <span
+            class="flex items-center gap-2"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-chevron-right h-4 w-4 text-muted"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="m9 18 6-6-6-6"
+              />
+            </svg>
+            <span
+              class="font-semibold text-ink"
+            >
+              Vesna
+            </span>
+          </span>
+          <span
+            class="text-2xl font-display font-semibold tabular-nums"
+          >
+            7.6
+          </span>
+        </button>
+      </article>
+    </div>
+  </section>
+</div>
+`;

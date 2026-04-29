@@ -1,0 +1,51 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Nav > matches the default snapshot 1`] = `
+<header
+  class="sticky top-0 z-30 h-16 bg-surface border-b border-border"
+  role="banner"
+>
+  <nav
+    aria-label="Primary"
+    class="max-w-7xl mx-auto px-6 lg:px-8 h-full flex items-center justify-between"
+  >
+    <a
+      aria-label="HackSim home"
+      class="font-display font-semibold text-xl tracking-tight text-ink"
+      href="/"
+    >
+      HackSim
+    </a>
+    <ul
+      class="flex items-center gap-8 text-sm font-medium text-body"
+    >
+      <li>
+        <a
+          class="hover:opacity-60 transition"
+          href="/examples"
+        >
+          Examples
+        </a>
+      </li>
+      <li>
+        <a
+          class="hover:opacity-60 transition"
+          href="/docs"
+        >
+          Docs
+        </a>
+      </li>
+      <li>
+        <a
+          class="hover:opacity-60 transition"
+          href="https://github.com/gensyn-ai/axl"
+          rel="noreferrer"
+          target="_blank"
+        >
+          GitHub
+        </a>
+      </li>
+    </ul>
+  </nav>
+</header>
+`;

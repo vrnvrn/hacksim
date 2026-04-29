@@ -1,0 +1,212 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`FileTree > matches the default snapshot 1`] = `
+<nav
+  aria-label="Project files"
+  class="text-sm overflow-y-auto h-full p-3"
+>
+  <ul
+    class="space-y-0.5"
+  >
+    <li>
+      <button
+        aria-expanded="true"
+        class="w-full flex items-center gap-1.5 hover:bg-canvas px-2 py-1 rounded-md text-body"
+        style="padding-left: 8px;"
+        type="button"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-chevron-down h-3.5 w-3.5 text-muted"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="m6 9 6 6 6-6"
+          />
+        </svg>
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-folder h-3.5 w-3.5 text-muted"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"
+          />
+        </svg>
+        <span>
+          assets
+        </span>
+      </button>
+      <ul
+        class="space-y-0.5"
+      >
+        <li>
+          <button
+            class="w-full flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-canvas transition text-body"
+            style="padding-left: 20px;"
+            type="button"
+          >
+            <span
+              aria-hidden="true"
+              class="w-3.5"
+            />
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-file h-3.5 w-3.5 text-muted"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"
+              />
+              <path
+                d="M14 2v4a2 2 0 0 0 2 2h4"
+              />
+            </svg>
+            <span
+              class="truncate"
+            >
+              logo.svg
+            </span>
+          </button>
+        </li>
+      </ul>
+    </li>
+    <li>
+      <button
+        class="w-full flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-canvas transition text-body"
+        style="padding-left: 8px;"
+        type="button"
+      >
+        <span
+          aria-hidden="true"
+          class="w-3.5"
+        />
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-file h-3.5 w-3.5 text-muted"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"
+          />
+          <path
+            d="M14 2v4a2 2 0 0 0 2 2h4"
+          />
+        </svg>
+        <span
+          class="truncate"
+        >
+          app.js
+        </span>
+      </button>
+    </li>
+    <li>
+      <button
+        aria-current="true"
+        class="w-full flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-canvas transition bg-accent-soft text-accent font-medium"
+        style="padding-left: 8px;"
+        type="button"
+      >
+        <span
+          aria-hidden="true"
+          class="w-3.5"
+        />
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-file h-3.5 w-3.5 text-muted"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"
+          />
+          <path
+            d="M14 2v4a2 2 0 0 0 2 2h4"
+          />
+        </svg>
+        <span
+          class="truncate"
+        >
+          index.html
+        </span>
+      </button>
+    </li>
+    <li>
+      <button
+        class="w-full flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-canvas transition text-body"
+        style="padding-left: 8px;"
+        type="button"
+      >
+        <span
+          aria-hidden="true"
+          class="w-3.5"
+        />
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-file h-3.5 w-3.5 text-muted"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"
+          />
+          <path
+            d="M14 2v4a2 2 0 0 0 2 2h4"
+          />
+        </svg>
+        <span
+          class="truncate"
+        >
+          style.css
+        </span>
+      </button>
+    </li>
+  </ul>
+</nav>
+`;
