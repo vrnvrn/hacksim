@@ -1,0 +1,310 @@
+{
+  "id": "sim_2026-04-28_a1b2c3",
+  "prompt": "an onchain agents hackathon with five sponsors and a $5k pool",
+  "config": {
+    "builders": 6,
+    "judges": 3,
+    "designers": 3,
+    "duration_hint": "short"
+  },
+  "phase": 3,
+  "created_at": "2026-04-28T12:00:00Z",
+  "bounties": [
+    {
+      "id": "bnty_permits",
+      "title": "Best onchain UX for permits",
+      "sponsor_name": "Permit Labs",
+      "sponsor_peer_id": "1111111111111111111111111111111111111111111111111111111111111111",
+      "prize_amount_usd": 1500,
+      "description": "Build the smoothest two-tap permit flow. Surface gas, surface failure, no hidden state. Web only, no extension.",
+      "qualification": [
+        "Works against a fresh wallet",
+        "Mobile-friendly layout",
+        "No external network calls beyond an RPC stub"
+      ],
+      "created_at": "2026-04-28T12:01:00Z"
+    },
+    {
+      "id": "bnty_visualisation",
+      "title": "Make the mesh visible",
+      "sponsor_name": "Yggdrasil Studio",
+      "sponsor_peer_id": "2222222222222222222222222222222222222222222222222222222222222222",
+      "prize_amount_usd": 1200,
+      "description": "Visualise an AXL mesh in real time. Show peers, show traffic, show topology. Make a non-engineer understand.",
+      "qualification": [
+        "Renders at 30fps on a laptop",
+        "Updates within 200ms of a new event",
+        "Legible at a glance"
+      ],
+      "created_at": "2026-04-28T12:02:00Z"
+    },
+    {
+      "id": "bnty_play",
+      "title": "Build something playful",
+      "sponsor_name": "Coral Games",
+      "sponsor_peer_id": "3333333333333333333333333333333333333333333333333333333333333333",
+      "prize_amount_usd": 1000,
+      "description": "Take a serious primitive and make it joyful. The judges will play it. Make it want to be played.",
+      "qualification": [
+        "Single page, no install",
+        "Two-minute loop",
+        "Keyboard or touch only"
+      ],
+      "created_at": "2026-04-28T12:03:00Z"
+    },
+    {
+      "id": "bnty_judging",
+      "title": "Show the judging",
+      "sponsor_name": "Rubric Co.",
+      "sponsor_peer_id": "4444444444444444444444444444444444444444444444444444444444444444",
+      "prize_amount_usd": 800,
+      "description": "Reveal how three independent judges saw the same project. Make the disagreement legible, not a bar chart of total scores.",
+      "qualification": [
+        "Per-criterion breakdown",
+        "Click-through to feedback prose",
+        "Render time under 50ms"
+      ],
+      "created_at": "2026-04-28T12:04:00Z"
+    },
+    {
+      "id": "bnty_oss",
+      "title": "Best open-source contribution",
+      "sponsor_name": "Foundation Track",
+      "sponsor_peer_id": "5555555555555555555555555555555555555555555555555555555555555555",
+      "prize_amount_usd": 500,
+      "description": "Submit your project under MIT or Apache. Bonus for a working pull request against an upstream Gensyn repo.",
+      "qualification": [
+        "MIT or Apache licence",
+        "Clean README",
+        "One-command quickstart"
+      ],
+      "created_at": "2026-04-28T12:05:00Z"
+    }
+  ],
+  "builders": [
+    {
+      "peer_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "display_name": "Aiko Tanaka",
+      "skills": ["typescript", "three.js", "shaders"],
+      "team_id": "team_alpha",
+      "current_bounty_id": "bnty_visualisation",
+      "persona_excerpt": "Loves writing tiny scenes that hit 60fps on a phone. Believes the mesh has a shape and the shape is a cathedral."
+    },
+    {
+      "peer_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "display_name": "Beni Carter",
+      "skills": ["d3", "data-vis", "svg"],
+      "team_id": "team_alpha",
+      "current_bounty_id": "bnty_visualisation",
+      "persona_excerpt": "Reads docs end to end before writing a line. Force-directed graphs are a hammer; many things look like nails."
+    },
+    {
+      "peer_id": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "display_name": "Cherif Diallo",
+      "skills": ["solidity", "viem", "web3"],
+      "team_id": "team_beta",
+      "current_bounty_id": "bnty_permits",
+      "persona_excerpt": "Has signed more permits than most people have signed birthday cards. Treats UX as a security feature."
+    },
+    {
+      "peer_id": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "display_name": "Dilan Sahin",
+      "skills": ["react", "tailwind", "css"],
+      "team_id": "team_beta",
+      "current_bounty_id": "bnty_permits",
+      "persona_excerpt": "Has strong opinions about colour, kerning, and why most progress bars lie."
+    },
+    {
+      "peer_id": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "display_name": "Esra Yilmaz",
+      "skills": ["canvas", "game-loops", "physics"],
+      "team_id": "team_gamma",
+      "current_bounty_id": "bnty_play",
+      "persona_excerpt": "Started writing pong clones at 12, never stopped. Believes any concept can be a two-paddle game."
+    },
+    {
+      "peer_id": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "display_name": "Faye Robinson",
+      "skills": ["typescript", "viz", "audio"],
+      "team_id": "team_gamma",
+      "current_bounty_id": "bnty_play",
+      "persona_excerpt": "Adds a sound effect to anything that moves. Sound is feedback, feedback is feel, feel is good."
+    }
+  ],
+  "teams": [
+    {
+      "id": "team_alpha",
+      "bounty_id": "bnty_visualisation",
+      "members": [
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ],
+      "formed_at": "2026-04-28T12:08:00Z"
+    },
+    {
+      "id": "team_beta",
+      "bounty_id": "bnty_permits",
+      "members": [
+        "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+      ],
+      "formed_at": "2026-04-28T12:09:00Z"
+    },
+    {
+      "id": "team_gamma",
+      "bounty_id": "bnty_play",
+      "members": [
+        "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+      ],
+      "formed_at": "2026-04-28T12:10:00Z"
+    }
+  ],
+  "projects": [
+    {
+      "id": "proj_d3vis",
+      "team_id": "team_alpha",
+      "bounty_id": "bnty_visualisation",
+      "title": "Tree of Skill",
+      "tagline": "A D3 force graph of every builder, coloured by skill cluster.",
+      "description": "A live force-directed graph that pulses on every team-formed event and recolours when a builder changes track. Hovering a node reveals the builder's skills.",
+      "status": "judged",
+      "submitted_at": "2026-04-28T12:30:00Z",
+      "commit_hash": "1a2b3c4d5e6f7890abcdef1234567890",
+      "entry_path": "index.html",
+      "artefact_path": "/served/proj_d3vis",
+      "github_url": null
+    },
+    {
+      "id": "proj_threejs",
+      "team_id": "team_beta",
+      "bounty_id": "bnty_permits",
+      "title": "Permit Cathedral",
+      "tagline": "A three.js scene where each peer is a glowing column on the floor.",
+      "description": "Walk the cathedral. Each column lights up when its peer broadcasts. The room hums in proportion to mesh traffic. WASD to move. Click a column to read the latest envelope it sent.",
+      "status": "judged",
+      "submitted_at": "2026-04-28T12:35:00Z",
+      "commit_hash": "abcdef0123456789abcdef0123456789",
+      "entry_path": "index.html",
+      "artefact_path": "/served/proj_threejs",
+      "github_url": null
+    },
+    {
+      "id": "proj_game",
+      "team_id": "team_gamma",
+      "bounty_id": "bnty_play",
+      "title": "Permit Pong",
+      "tagline": "Pong, but each rally is a signed permit.",
+      "description": "Two-paddle pong where every paddle hit triggers an EIP-2612 permit. Watch the ball, watch the signatures fly across the bottom strip. Score to ten.",
+      "status": "judged",
+      "submitted_at": "2026-04-28T12:40:00Z",
+      "commit_hash": "fedcba9876543210fedcba9876543210",
+      "entry_path": "index.html",
+      "artefact_path": "/served/proj_game",
+      "github_url": null
+    }
+  ],
+  "judges": [
+    {
+      "peer_id": "9999999999999999999999999999999999999999999999999999999999999999",
+      "display_name": "Vesna Pavic",
+      "rubric": [
+        { "name": "Functionality", "weight": 0.5, "description": "Does it work end to end on a fresh load." },
+        { "name": "Design", "weight": 0.3, "description": "Visual coherence and clarity." },
+        { "name": "Originality", "weight": 0.2, "description": "Did anyone else think to do this." }
+      ],
+      "scored_count": 3,
+      "total_to_score": 3
+    },
+    {
+      "peer_id": "8888888888888888888888888888888888888888888888888888888888888888",
+      "display_name": "Jamal Rivers",
+      "rubric": [
+        { "name": "Code quality", "weight": 0.4, "description": "Readable, tested, no dead code." },
+        { "name": "Functionality", "weight": 0.4, "description": "Works under five clicks." },
+        { "name": "Polish", "weight": 0.2, "description": "Everything that should land lands." }
+      ],
+      "scored_count": 3,
+      "total_to_score": 3
+    },
+    {
+      "peer_id": "7777777777777777777777777777777777777777777777777777777777777777",
+      "display_name": "Mei Lin Park",
+      "rubric": [
+        { "name": "Use of AXL", "weight": 0.4, "description": "Does the project actually exercise the mesh." },
+        { "name": "Functionality", "weight": 0.3, "description": "Works without surprises." },
+        { "name": "Design", "weight": 0.3, "description": "Looks like someone cared." }
+      ],
+      "scored_count": 3,
+      "total_to_score": 3
+    }
+  ],
+  "verdicts": [
+    {
+      "project_id": "proj_d3vis",
+      "judge_peer_id": "9999999999999999999999999999999999999999999999999999999999999999",
+      "scores": { "Functionality": 8, "Design": 9, "Originality": 7 },
+      "total": 8.0,
+      "feedback": "The graph reflowed cleanly on every team-formed event. Colour clusters were legible. Hover popovers landed on the wrong node twice during my test, lost a point on functionality.",
+      "interactions_summary": "click on a node, hover over a node, drag a node"
+    },
+    {
+      "project_id": "proj_d3vis",
+      "judge_peer_id": "8888888888888888888888888888888888888888888888888888888888888888",
+      "scores": { "Code quality": 8, "Functionality": 7, "Polish": 8 },
+      "total": 7.6,
+      "feedback": "Tidy code, separation of concerns is good. The simulation loop runs even when offscreen, mild perf concern."
+    },
+    {
+      "project_id": "proj_d3vis",
+      "judge_peer_id": "7777777777777777777777777777777777777777777777777777777777777777",
+      "scores": { "Use of AXL": 9, "Functionality": 8, "Design": 8 },
+      "total": 8.3,
+      "feedback": "Best mesh-aware project of the three. The graph reads peer ids, the layout reflects topology. Clean."
+    },
+    {
+      "project_id": "proj_threejs",
+      "judge_peer_id": "9999999999999999999999999999999999999999999999999999999999999999",
+      "scores": { "Functionality": 7, "Design": 9, "Originality": 9 },
+      "total": 8.2,
+      "feedback": "Beautiful. The hum is a clever audio cue. Movement clipping in one corner cost a point.",
+      "interactions_summary": "WASD to move, click on a column"
+    },
+    {
+      "project_id": "proj_threejs",
+      "judge_peer_id": "8888888888888888888888888888888888888888888888888888888888888888",
+      "scores": { "Code quality": 7, "Functionality": 7, "Polish": 9 },
+      "total": 7.6,
+      "feedback": "Polish is high. Audio context not gated behind user gesture, throws a warning in console."
+    },
+    {
+      "project_id": "proj_threejs",
+      "judge_peer_id": "7777777777777777777777777777777777777777777777777777777777777777",
+      "scores": { "Use of AXL": 8, "Functionality": 7, "Design": 9 },
+      "total": 8.0,
+      "feedback": "Each column maps to a real peer id. Decent. The bounty asked for permit UX though, this leans on the visualisation lane."
+    },
+    {
+      "project_id": "proj_game",
+      "judge_peer_id": "9999999999999999999999999999999999999999999999999999999999999999",
+      "scores": { "Functionality": 8, "Design": 7, "Originality": 8 },
+      "total": 7.7,
+      "feedback": "Pong with permits is a good gag, and the gag holds up. The permit overlay covers the ball at high score deltas.",
+      "interactions_summary": "ArrowUp, ArrowDown, hold space to charge"
+    },
+    {
+      "project_id": "proj_game",
+      "judge_peer_id": "8888888888888888888888888888888888888888888888888888888888888888",
+      "scores": { "Code quality": 7, "Functionality": 8, "Polish": 7 },
+      "total": 7.4,
+      "feedback": "Clean game loop. Sound effects belong on a toggle, they auto-played on load."
+    },
+    {
+      "project_id": "proj_game",
+      "judge_peer_id": "7777777777777777777777777777777777777777777777777777777777777777",
+      "scores": { "Use of AXL": 5, "Functionality": 8, "Design": 7 },
+      "total": 6.6,
+      "feedback": "AXL angle is light. Permits are signed locally; nothing crosses the mesh. Loses points there."
+    }
+  ]
+}
