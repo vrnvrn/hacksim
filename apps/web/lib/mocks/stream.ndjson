@@ -1,0 +1,29 @@
+{"type":"phase.tick","ts":"2026-04-28T12:00:00Z","from":"organiser","data":{"phase":1,"label":"designing"}}
+{"type":"bounty.posted","ts":"2026-04-28T12:01:00Z","from":"1111111111111111111111111111111111111111111111111111111111111111","data":{"bounty_id":"bnty_permits","title":"Best onchain UX for permits"}}
+{"type":"bounty.posted","ts":"2026-04-28T12:02:00Z","from":"2222222222222222222222222222222222222222222222222222222222222222","data":{"bounty_id":"bnty_visualisation","title":"Make the mesh visible"}}
+{"type":"bounty.posted","ts":"2026-04-28T12:03:00Z","from":"3333333333333333333333333333333333333333333333333333333333333333","data":{"bounty_id":"bnty_play","title":"Build something playful"}}
+{"type":"bounty.posted","ts":"2026-04-28T12:04:00Z","from":"4444444444444444444444444444444444444444444444444444444444444444","data":{"bounty_id":"bnty_judging","title":"Show the judging"}}
+{"type":"bounty.posted","ts":"2026-04-28T12:05:00Z","from":"5555555555555555555555555555555555555555555555555555555555555555","data":{"bounty_id":"bnty_oss","title":"Best open-source contribution"}}
+{"type":"phase.tick","ts":"2026-04-28T12:06:00Z","from":"organiser","data":{"phase":2,"label":"building"}}
+{"type":"team.forming","ts":"2026-04-28T12:07:00Z","from":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","data":{"bounty_id":"bnty_visualisation"}}
+{"type":"team.formed","ts":"2026-04-28T12:08:00Z","from":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","data":{"team_id":"team_alpha","bounty_id":"bnty_visualisation"}}
+{"type":"team.formed","ts":"2026-04-28T12:09:00Z","from":"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc","data":{"team_id":"team_beta","bounty_id":"bnty_permits"}}
+{"type":"team.formed","ts":"2026-04-28T12:10:00Z","from":"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee","data":{"team_id":"team_gamma","bounty_id":"bnty_play"}}
+{"type":"rubric.published","ts":"2026-04-28T12:12:00Z","from":"9999999999999999999999999999999999999999999999999999999999999999","data":{"judge":"Vesna Pavic"}}
+{"type":"rubric.published","ts":"2026-04-28T12:13:00Z","from":"8888888888888888888888888888888888888888888888888888888888888888","data":{"judge":"Jamal Rivers"}}
+{"type":"rubric.published","ts":"2026-04-28T12:14:00Z","from":"7777777777777777777777777777777777777777777777777777777777777777","data":{"judge":"Mei Lin Park"}}
+{"type":"project.submitted","ts":"2026-04-28T12:30:00Z","from":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","data":{"project_id":"proj_d3vis","title":"Tree of Skill","commit":"1a2b3c4d"}}
+{"type":"project.submitted","ts":"2026-04-28T12:35:00Z","from":"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc","data":{"project_id":"proj_threejs","title":"Permit Cathedral","commit":"abcdef01"}}
+{"type":"project.submitted","ts":"2026-04-28T12:40:00Z","from":"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee","data":{"project_id":"proj_game","title":"Permit Pong","commit":"fedcba98"}}
+{"type":"phase.tick","ts":"2026-04-28T12:42:00Z","from":"organiser","data":{"phase":3,"label":"judging"}}
+{"type":"verdict.published","ts":"2026-04-28T12:50:00Z","from":"9999999999999999999999999999999999999999999999999999999999999999","data":{"project_id":"proj_d3vis","score":8.0}}
+{"type":"verdict.published","ts":"2026-04-28T12:51:00Z","from":"8888888888888888888888888888888888888888888888888888888888888888","data":{"project_id":"proj_d3vis","score":7.6}}
+{"type":"verdict.published","ts":"2026-04-28T12:52:00Z","from":"7777777777777777777777777777777777777777777777777777777777777777","data":{"project_id":"proj_d3vis","score":8.3}}
+{"type":"verdict.published","ts":"2026-04-28T12:55:00Z","from":"9999999999999999999999999999999999999999999999999999999999999999","data":{"project_id":"proj_threejs","score":8.2}}
+{"type":"verdict.published","ts":"2026-04-28T12:56:00Z","from":"8888888888888888888888888888888888888888888888888888888888888888","data":{"project_id":"proj_threejs","score":7.6}}
+{"type":"verdict.published","ts":"2026-04-28T12:57:00Z","from":"7777777777777777777777777777777777777777777777777777777777777777","data":{"project_id":"proj_threejs","score":8.0}}
+{"type":"verdict.published","ts":"2026-04-28T13:00:00Z","from":"9999999999999999999999999999999999999999999999999999999999999999","data":{"project_id":"proj_game","score":7.7}}
+{"type":"verdict.published","ts":"2026-04-28T13:01:00Z","from":"8888888888888888888888888888888888888888888888888888888888888888","data":{"project_id":"proj_game","score":7.4}}
+{"type":"verdict.published","ts":"2026-04-28T13:02:00Z","from":"7777777777777777777777777777777777777777777777777777777777777777","data":{"project_id":"proj_game","score":6.6}}
+{"type":"phase.tick","ts":"2026-04-28T13:03:00Z","from":"organiser","data":{"phase":4,"label":"closed"}}
+{"type":"hackathon.closed","ts":"2026-04-28T13:03:30Z","from":"organiser","data":{"winners":["proj_d3vis","proj_threejs","proj_game"]}}
