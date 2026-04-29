@@ -64,7 +64,9 @@ def run(ctx: SkillContext) -> None:
     state.submitted = False  # type: ignore[attr-defined]
     state.sim_prompt = ""  # type: ignore[attr-defined]
 
-    state.register("bounty.posted", _on_bounty_posted)
+    # Gossip the bounties we receive so other builders whose topology has not
+    # expanded to include the original designer still hear about them.
+    state.register("bounty.posted", _on_bounty_posted, gossip=True)
     state.register("phase.tick", _on_phase_tick)
     state.register("sim.prompt", _on_sim_prompt)
     loop_until_closed(state)
@@ -137,13 +139,7 @@ def _form_team(state: WorkerState) -> None:
         },
     )
     wire = encode_envelope(formed)
-    sent = 0
-    for peer_id in state.client.all_peer_ids():
-        try:
-            state.client.send(peer_id, wire)
-            sent += 1
-        except Exception:
-            pass
+    sent = state.fanout(wire, repeats=2, interval=2.0)
 
     state.team_formed = True  # type: ignore[attr-defined]
     state.emit(
@@ -154,7 +150,7 @@ def _form_team(state: WorkerState) -> None:
             "bounty_title": chosen.get("title"),
             "sponsor": chosen.get("sponsor_name"),
             "members": 1,
-            "sent_to": sent,
+            "sent_to_initial": sent,
         },
     )
 
@@ -209,13 +205,7 @@ def _build_and_submit(state: WorkerState) -> None:
         payload=payload,
     )
     wire = encode_envelope(submitted)
-    sent = 0
-    for peer_id in state.client.all_peer_ids():
-        try:
-            state.client.send(peer_id, wire)
-            sent += 1
-        except Exception:
-            pass
+    sent = state.fanout(wire, repeats=4, interval=2.0)
 
     state.submitted = True  # type: ignore[attr-defined]
     state.emit(
@@ -225,7 +215,7 @@ def _build_and_submit(state: WorkerState) -> None:
             "title": result["title"],
             "commit_hash": result["commit_hash"],
             "files": len(result["files"]),
-            "sent_to": sent,
+            "sent_to_initial": sent,
         },
     )
     _post_artefact_to_orchestrator(state, payload)

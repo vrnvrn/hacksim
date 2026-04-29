@@ -28,8 +28,10 @@ def run(ctx: SkillContext) -> None:
     state.scored = set()  # type: ignore[attr-defined]
     state.rubric_published = False  # type: ignore[attr-defined]
 
-    state.register("bounty.posted", _on_bounty_posted)
-    state.register("project.submitted", _on_project_submitted)
+    # Gossip bounty.posted and project.submitted so peers whose topology
+    # was sparse at the original broadcast still hear about them.
+    state.register("bounty.posted", _on_bounty_posted, gossip=True)
+    state.register("project.submitted", _on_project_submitted, gossip=True)
     state.register("phase.tick", _on_phase_tick)
     loop_until_closed(state)
 
@@ -84,15 +86,9 @@ def _on_phase_tick(state: WorkerState, env: Envelope) -> None:
             },
         )
         wire = encode_envelope(rubric_env)
-        sent = 0
-        for peer_id in state.client.all_peer_ids():
-            try:
-                state.client.send(peer_id, wire)
-                sent += 1
-            except Exception:
-                pass
+        sent = state.fanout(wire, repeats=2, interval=2.0)
         state.rubric_published = True  # type: ignore[attr-defined]
-        state.emit("rubric.published", {"archetype": archetype["name"], "sent_to": sent})
+        state.emit("rubric.published", {"archetype": archetype["name"], "sent_to_initial": sent})
 
     projects = list(state.projects.values())  # type: ignore[attr-defined]
     if not projects:
@@ -118,13 +114,7 @@ def _on_phase_tick(state: WorkerState, env: Envelope) -> None:
             payload=verdict,
         )
         wire = encode_envelope(env_out)
-        sent = 0
-        for peer_id in state.client.all_peer_ids():
-            try:
-                state.client.send(peer_id, wire)
-                sent += 1
-            except Exception:
-                pass
+        sent = state.fanout(wire, repeats=2, interval=2.0)
 
         state.scored.add(pid)  # type: ignore[attr-defined]
         state.emit(
@@ -134,6 +124,6 @@ def _on_phase_tick(state: WorkerState, env: Envelope) -> None:
                 "total": verdict["total"],
                 "scores": verdict["scores"],
                 "archetype": verdict.get("archetype"),
-                "sent_to": sent,
+                "sent_to_initial": sent,
             },
         )

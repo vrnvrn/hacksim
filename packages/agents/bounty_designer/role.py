@@ -61,15 +61,10 @@ def _on_phase_tick(state: WorkerState, env: Envelope) -> None:
         payload=payload,
     )
     wire = encode_envelope(bounty_env)
-
-    sent = 0
-    failed = 0
-    for peer_id in state.client.all_peer_ids():
-        try:
-            state.client.send(peer_id, wire)
-            sent += 1
-        except Exception:
-            failed += 1
+    # Re-broadcast a few times so peers whose Yggdrasil tree has not yet
+    # propagated still hear us. The AXL recv queue is bounded (~100), so we
+    # avoid flooding; gossip from receivers carries the rest.
+    sent = state.fanout(wire, repeats=4, interval=2.0)
 
     state.posted = True  # type: ignore[attr-defined]
     state.emit(
@@ -79,7 +74,7 @@ def _on_phase_tick(state: WorkerState, env: Envelope) -> None:
             "sponsor_name": payload["sponsor_name"],
             "title": payload["title"],
             "prize_amount_usd": payload["prize_amount_usd"],
-            "sent_to": sent,
-            "failed": failed,
+            "sent_to_initial": sent,
+            "rebroadcasts_scheduled": 4,
         },
     )
