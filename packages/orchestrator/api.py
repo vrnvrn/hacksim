@@ -42,9 +42,13 @@ from .sse import SseHub
 
 
 class SimConfig(BaseModel):
-    builders: int = Field(default=8, ge=1, le=32)
-    judges: int = Field(default=3, ge=1, le=10)
-    designers: int = Field(default=3, ge=1, le=10)
+    # Hard upper bounds on a single-laptop loopback Yggdrasil mesh. Above
+    # these the recv queue (bounded at 100 per node) saturates and
+    # bounty.posted gossip stops propagating reliably. Pick numbers that
+    # produce a watchable demo, not a realistic conference.
+    builders: int = Field(default=8, ge=1, le=10)
+    judges: int = Field(default=3, ge=1, le=5)
+    designers: int = Field(default=3, ge=1, le=5)
     duration_hint: str = Field(default="short")
     pace: str = Field(default="quick")
 
@@ -153,6 +157,27 @@ def create_app(
         sim_id = _new_sim_id()
 
         if app.state.auto_start:
+            # The orchestrator runs one simulation at a time. Booting a fresh
+            # one stops every prior controller so their AXL nodes do not
+            # saturate the loopback Yggdrasil mesh and starve the new sim's
+            # bounty.posted broadcasts. Stop in parallel as background tasks
+            # so the new sim's spawn does not wait on slow shutdowns.
+            prior = list(app.state.controllers.values())
+            app.state.controllers.clear()
+
+            async def _stop_one(c):
+                try:
+                    await c.stop()
+                except Exception:
+                    pass
+
+            for old in prior:
+                try:
+                    old.hub.close(old.sim_id)
+                except Exception:
+                    pass
+                asyncio.create_task(_stop_one(old))
+
             cfg = ControllerConfig(
                 builders=req.config.builders,
                 judges=req.config.judges,

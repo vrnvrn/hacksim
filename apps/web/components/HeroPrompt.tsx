@@ -150,24 +150,28 @@ function SettingsPopover({
               label="Builders"
               value={config.builders}
               min={2}
-              max={20}
+              max={10}
               onChange={(builders) => onChange({ ...config, builders })}
             />
             <SliderRow
               label="Judges"
               value={config.judges}
               min={1}
-              max={9}
+              max={5}
               onChange={(judges) => onChange({ ...config, judges })}
             />
             <SliderRow
               label="Bounty designers"
               value={config.designers}
               min={1}
-              max={9}
+              max={5}
               onChange={(designers) => onChange({ ...config, designers })}
             />
           </div>
+          <p className="text-[11px] text-muted mt-3 leading-relaxed">
+            Counts are capped so the loopback mesh stays watchable. Bigger
+            sims need a real multi-host bootstrap.
+          </p>
           <div className="mt-5 flex items-center justify-between border-t border-border pt-4">
             <button
               type="button"
