@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+from unittest.mock import AsyncMock, patch
 
 import httpx
 import pytest
@@ -15,7 +16,7 @@ from packages.orchestrator.api import create_app
 
 @pytest.fixture
 def client() -> TestClient:
-    app = create_app(hub=SseHub(capacity=64))
+    app = create_app(hub=SseHub(capacity=64), auto_start=False)
     return TestClient(app)
 
 
@@ -197,3 +198,67 @@ class TestCors:
         )
         assert resp.status_code == 200
         assert resp.headers.get("access-control-allow-origin") == "http://localhost:3000"
+
+
+class TestAutoStart:
+    """When auto_start is on, POST /api/sim wires a SimController."""
+
+    def test_post_creates_controller_and_returns_id(self, tmp_path):
+        # Patch SimController.start so the test does not actually spawn AXL.
+        with patch(
+            "packages.orchestrator.api.SimController.start", new=AsyncMock(return_value=None)
+        ) as mock_start:
+            app = create_app(
+                hub=SseHub(capacity=64),
+                auto_start=True,
+                base_dir=tmp_path,
+                axl_bin=tmp_path / "fake_axl",
+                orch_url="http://127.0.0.1:8000",
+            )
+            with TestClient(app) as client:
+                resp = client.post("/api/sim", json={"prompt": "auto-start test"})
+                assert resp.status_code == 201
+                sim_id = resp.json()["id"]
+                assert sim_id in app.state.controllers
+                # background start should have been awaited by the time the
+                # client context manager exits.
+                snap = client.get(f"/api/sim/{sim_id}/snapshot").json()
+                assert snap["id"] == sim_id
+                assert snap["prompt"] == "auto-start test"
+                assert snap["bounties"] == []
+        mock_start.assert_awaited()
+
+    def test_snapshot_returns_controller_snapshot_when_present(self, tmp_path):
+        with patch(
+            "packages.orchestrator.api.SimController.start", new=AsyncMock(return_value=None)
+        ):
+            app = create_app(
+                hub=SseHub(capacity=64),
+                auto_start=True,
+                base_dir=tmp_path,
+                axl_bin=tmp_path / "fake_axl",
+                orch_url="http://127.0.0.1:8000",
+            )
+            with TestClient(app) as client:
+                sim_id = client.post("/api/sim", json={"prompt": "x"}).json()["id"]
+                # Mutate the controller's snapshot directly to confirm the
+                # endpoint returns it.
+                app.state.controllers[sim_id]._snapshot["bounties"].append(
+                    {"id": "b1", "title": "live"}
+                )
+                snap = client.get(f"/api/sim/{sim_id}/snapshot").json()
+                assert any(b["title"] == "live" for b in snap["bounties"])
+
+    def test_health_reports_auto_start_flag(self, tmp_path):
+        with patch(
+            "packages.orchestrator.api.SimController.start", new=AsyncMock(return_value=None)
+        ):
+            app = create_app(
+                hub=SseHub(capacity=64),
+                auto_start=True,
+                base_dir=tmp_path,
+                axl_bin=tmp_path / "fake_axl",
+            )
+            with TestClient(app) as client:
+                health = client.get("/api/health").json()
+                assert health["auto_start"] is True

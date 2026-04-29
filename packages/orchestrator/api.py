@@ -5,23 +5,26 @@ Endpoints (per UX_SPEC.md section 6):
     POST /api/sim                            create a new simulation
     GET  /api/sim/{sim_id}/snapshot          fetch the current state
     GET  /api/sim/{sim_id}/stream            SSE stream of envelopes
+    POST /api/sim/{sim_id}/projects                      register an artefact
     GET  /api/sim/{sim_id}/projects/{pid}/files          list files
     GET  /api/sim/{sim_id}/projects/{pid}/static/{path}  serve artefact
 
-This commit lands the first three. The project artefact endpoints land in
-commit 17 alongside the artefacts module (git-archive on submission, CSP
-header on serve).
+`POST /api/sim` starts a real SimController by default (commit 28): it
+spawns the AXL nodes plus the role workers, attaches log tailers, and
+returns the sim id while the population finishes coming up in the
+background. `GET /api/sim/{id}/snapshot` returns the live snapshot the
+controller maintains.
 
-The app holds an in-memory simulation registry and an SseHub. It does not
-yet spawn AXL nodes or Claude Code sessions; that wiring lands in commit
-12 once the skill is in place. For now `POST /api/sim` accepts a prompt
-and config, allocates a sim id, publishes a `sim.created` event so the
-SSE stream proves out, and returns the id.
+For tests and offline mocks, callers pass `auto_start=False` to
+`create_app`; in that mode the endpoint behaves as before, allocating a
+sim id and publishing `sim.created` without spawning anything.
 """
 
 from __future__ import annotations
 
+import asyncio
 import mimetypes
+import os
 import secrets
 from datetime import datetime, timezone
 from pathlib import Path as FsPath
@@ -33,6 +36,8 @@ from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
 from .artefacts import CSP_HEADER, ArtefactError, ArtefactStore
+from .controller import SimConfig as ControllerConfig
+from .controller import SimController
 from .sse import SseHub
 
 
@@ -41,6 +46,7 @@ class SimConfig(BaseModel):
     judges: int = Field(default=3, ge=1, le=10)
     designers: int = Field(default=3, ge=1, le=10)
     duration_hint: str = Field(default="short")
+    pace: str = Field(default="quick")
 
 
 class CreateSimRequest(BaseModel):
@@ -101,8 +107,21 @@ def create_app(
     hub: SseHub | None = None,
     artefacts: ArtefactStore | None = None,
     artefacts_dir: FsPath | None = None,
+    auto_start: bool | None = None,
+    base_dir: FsPath | None = None,
+    axl_bin: FsPath | None = None,
+    orch_url: str | None = None,
 ) -> FastAPI:
-    """Construct the FastAPI app. The hub and artefact store can be injected for tests."""
+    """Construct the FastAPI app. The hub and artefact store can be injected for tests.
+
+    When `auto_start=True` (the default in production), `POST /api/sim`
+    boots a real SimController. When `auto_start=False`, the endpoint
+    behaves as before (record only, no spawn) so unit tests stay fast.
+
+    `base_dir` is where each sim stores its working trees; `axl_bin` is
+    the path to the AXL Go binary; `orch_url` is the URL the role workers
+    use to POST artefact registrations back to the orchestrator.
+    """
     app = FastAPI(title="HackSim Orchestrator", version="0.0.1")
     app.add_middleware(
         CORSMiddleware,
@@ -113,7 +132,8 @@ def create_app(
     )
 
     app.state.hub = hub if hub is not None else SseHub()
-    app.state.sims = {}
+    app.state.sims = {}  # legacy in-memory records (auto_start=False)
+    app.state.controllers = {}  # sim_id -> SimController (auto_start=True)
     if artefacts is not None:
         app.state.artefacts = artefacts
     else:
@@ -121,9 +141,51 @@ def create_app(
             base_dir=artefacts_dir or FsPath("sim-runs")
         )
 
+    if auto_start is None:
+        auto_start = os.environ.get("HACKSIM_AUTO_START", "false").lower() in {"1", "true", "yes"}
+    app.state.auto_start = auto_start
+    app.state.base_dir = base_dir or FsPath(os.environ.get("HACKSIM_RUNS_DIR", "sim-runs"))
+    app.state.axl_bin = axl_bin or FsPath(os.environ.get("HACKSIM_AXL_BIN", "third_party/axl/node"))
+    app.state.orch_url = orch_url or os.environ.get("HACKSIM_ORCH_URL", "http://127.0.0.1:8000")
+
     @app.post("/api/sim", response_model=CreateSimResponse, status_code=status.HTTP_201_CREATED)
-    def create_sim(req: CreateSimRequest):
+    async def create_sim(req: CreateSimRequest):
         sim_id = _new_sim_id()
+
+        if app.state.auto_start:
+            cfg = ControllerConfig(
+                builders=req.config.builders,
+                judges=req.config.judges,
+                designers=req.config.designers,
+                duration_hint=req.config.duration_hint,
+                pace=req.config.pace,
+            )
+            controller = SimController(
+                sim_id=sim_id,
+                prompt=req.prompt,
+                config=cfg,
+                hub=app.state.hub,
+                base_dir=FsPath(app.state.base_dir) / sim_id,
+                axl_bin=FsPath(app.state.axl_bin),
+                orch_url=app.state.orch_url,
+                artefacts=app.state.artefacts,
+            )
+            app.state.controllers[sim_id] = controller
+            app.state.hub.publish(
+                sim_id,
+                "sim.created",
+                {
+                    "sim_id": sim_id,
+                    "prompt": req.prompt,
+                    "config": req.config.model_dump(),
+                    "created_at": controller.snapshot["created_at"],
+                },
+            )
+            # Kick off start() in the background so the HTTP response
+            # returns the sim id quickly. Spawning 11 nodes can take ~10s.
+            asyncio.create_task(_safe_start(controller, app))
+            return CreateSimResponse(id=sim_id, stream_url=f"/api/sim/{sim_id}/stream")
+
         record = _SimRecord(sim_id=sim_id, prompt=req.prompt, config=req.config)
         app.state.sims[sim_id] = record
         app.state.hub.publish(
@@ -138,12 +200,26 @@ def create_app(
         )
         return CreateSimResponse(id=sim_id, stream_url=f"/api/sim/{sim_id}/stream")
 
-    @app.get("/api/sim/{sim_id}/snapshot", response_model=Snapshot)
+    @app.get("/api/sim/{sim_id}/snapshot")
     def get_snapshot(sim_id: Annotated[str, Path(min_length=1, max_length=64)]):
+        controller: SimController | None = app.state.controllers.get(sim_id)
+        if controller is not None:
+            return controller.snapshot
         record = app.state.sims.get(sim_id)
         if record is None:
             raise HTTPException(status_code=404, detail=f"unknown sim id: {sim_id}")
-        return record.snapshot()
+        return record.snapshot().model_dump()
+
+    @app.on_event("shutdown")
+    async def _on_shutdown():
+        # Cleanly stop every running controller so workers and AXL nodes
+        # do not leak when the orchestrator restarts.
+        for controller in list(app.state.controllers.values()):
+            try:
+                await controller.stop()
+            except Exception:
+                pass
+        app.state.controllers.clear()
 
     @app.get("/api/sim/{sim_id}/stream")
     async def stream_events(
@@ -160,7 +236,11 @@ def create_app(
                 except ValueError:
                     last_event_id = None
 
-        if sim_id not in app.state.sims and not app.state.hub.has_sim(sim_id):
+        if (
+            sim_id not in app.state.sims
+            and sim_id not in app.state.controllers
+            and not app.state.hub.has_sim(sim_id)
+        ):
             raise HTTPException(status_code=404, detail=f"unknown sim id: {sim_id}")
 
         hub: SseHub = app.state.hub
@@ -282,9 +362,28 @@ def create_app(
 
     @app.get("/api/health")
     def health():
-        return JSONResponse({"ok": True, "active_sims": len(app.state.sims)})
+        return JSONResponse(
+            {
+                "ok": True,
+                "auto_start": app.state.auto_start,
+                "active_sims": len(app.state.sims) + len(app.state.controllers),
+            }
+        )
 
     return app
+
+
+async def _safe_start(controller: SimController, app: FastAPI) -> None:
+    """Run controller.start in the background, publishing a structured
+    error event if anything goes wrong so the SSE stream surfaces it."""
+    try:
+        await controller.start()
+    except Exception as e:
+        app.state.hub.publish(
+            controller.sim_id,
+            "sim.start_error",
+            {"error": str(e)},
+        )
 
 
 # Module-level app for `uvicorn packages.orchestrator.api:app`
