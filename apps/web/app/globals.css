@@ -1,0 +1,88 @@
+@import "tailwindcss";
+
+/* General Sans, served locally from Fontshare. Drop the woff2 into
+   public/fonts/ to activate it; otherwise the body font (Inter Variable)
+   takes over via the CSS variable fallback chain in @theme below. */
+@font-face {
+  font-family: "General Sans";
+  src: url("/fonts/GeneralSans-Variable.woff2") format("woff2-variations");
+  font-weight: 200 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@theme {
+  --color-ink: #000000;
+  --color-body: #374151;
+  --color-muted: #6B7280;
+  --color-surface: #FFFFFF;
+  --color-canvas: #F9FAFB;
+  --color-border: #D1D5DB;
+  --color-navy: #21294C;
+  --color-navy-950: #2F2B43;
+  --color-accent: #8347FF;
+  --color-accent-soft: #F3E8FF;
+  --color-success: #22C55E;
+  --color-success-soft: #DCFCE7;
+  --color-success-ink: #166534;
+  --color-warning: #F59E0B;
+  --color-warning-soft: #FEF3C7;
+  --color-coral: #FF8585;
+  --color-gold: #FFC857;
+  --color-silver: #C0C0C0;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: "General Sans", var(--font-inter), sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+}
+
+html, body {
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  border-color: var(--color-border);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Sticky header offset for in-page anchor scrolls. */
+:target {
+  scroll-margin-top: 96px;
+}
+
+/* Run-log scrollbar treatment (subtle, dark surface). */
+.runlog-pane::-webkit-scrollbar {
+  width: 8px;
+}
+.runlog-pane::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+}
+.runlog-pane::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Visually hidden helper for sr-only content (Tailwind ships sr-only but this
+   keeps it stable across major versions). */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
