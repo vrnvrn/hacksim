@@ -1,4 +1,4 @@
-.PHONY: help test web-test build-axl gen-keys demo hooks-install clean
+.PHONY: help test web-test build-axl gen-keys demo smoke hooks-install clean
 
 help:
 	@echo "HackSim, an Agent Town on Gensyn AXL"
@@ -8,7 +8,8 @@ help:
 	@echo "  make web-test        run web unit tests"
 	@echo "  make build-axl       build the AXL Go binary in third_party/axl"
 	@echo "  make gen-keys        generate ed25519 keys for the default agent count"
-	@echo "  make demo            spin up a full simulation locally"
+	@echo "  make demo            launch orchestrator + frontend together (live)"
+	@echo "  make smoke           headless end-to-end smoke (no browser)"
 	@echo "  make clean           remove sim-runs and node-keys directories"
 
 test:
@@ -24,7 +25,10 @@ gen-keys:
 	bash scripts/gen_keys.sh
 
 demo:
-	bash scripts/run_sim.sh
+	bash scripts/run_demo.sh
+
+smoke:
+	.venv/bin/python scripts/smoke_e2e.py
 
 hooks-install:
 	git config core.hooksPath .githooks
