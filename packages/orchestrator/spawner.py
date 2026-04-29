@@ -150,6 +150,7 @@ class Spawner:
         startup_timeout: float = DEFAULT_STARTUP_TIMEOUT,
         python_bin: str | None = None,
         sim_id: str = "sim_default",
+        orch_url: str | None = None,
         keygen: callable | None = None,
         popen: callable | None = None,
         wait_ready: callable | None = None,
@@ -161,6 +162,7 @@ class Spawner:
         self.startup_timeout = startup_timeout
         self.python_bin = python_bin or _find_python()
         self.sim_id = sim_id
+        self.orch_url = orch_url
         self._keygen = keygen or _gen_ed25519_pem
         self._popen = popen or subprocess.Popen
         self._wait_ready = wait_ready or _wait_for_api
@@ -268,8 +270,11 @@ class Spawner:
             "AXL_API_PORT": str(node.api_port),
             "HACKSIM_ROLE": role,
             "HACKSIM_SIM_ID": self.sim_id,
+            "HACKSIM_WORK_DIR": str(node.work_dir),
             "PYTHONPATH": f"{repo_root}{os.pathsep}{os.environ.get('PYTHONPATH', '')}".rstrip(os.pathsep),
         }
+        if self.orch_url:
+            env["HACKSIM_ORCH_URL"] = self.orch_url
 
         worker_log = node.work_dir / f"{name}.worker.log"
         worker_log_file = open(worker_log, "w")

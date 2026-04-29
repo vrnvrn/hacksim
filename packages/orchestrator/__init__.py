@@ -2,6 +2,12 @@
 multiplexes their events into a single SSE feed, and serves the web UI.
 """
 
+from .artefacts import (
+    ArtefactError,
+    ArtefactRecord,
+    ArtefactStore,
+    CSP_HEADER,
+)
 from .spawner import (
     NodeHandle,
     NodeSpec,
@@ -15,6 +21,10 @@ from .sse import (
 )
 
 __all__ = [
+    "ArtefactError",
+    "ArtefactRecord",
+    "ArtefactStore",
+    "CSP_HEADER",
     "NodeHandle",
     "NodeSpec",
     "RoleHandle",

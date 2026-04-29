@@ -21,15 +21,18 @@ SSE stream proves out, and returns the id.
 
 from __future__ import annotations
 
+import mimetypes
 import secrets
 from datetime import datetime, timezone
+from pathlib import Path as FsPath
 from typing import Annotated
 
 from fastapi import FastAPI, HTTPException, Path, Query, Request, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
+from .artefacts import CSP_HEADER, ArtefactError, ArtefactStore
 from .sse import SseHub
 
 
@@ -93,8 +96,13 @@ def _new_sim_id() -> str:
     return f"sim_{today}_{secrets.token_hex(3)}"
 
 
-def create_app(*, hub: SseHub | None = None) -> FastAPI:
-    """Construct the FastAPI app. The hub can be injected for tests."""
+def create_app(
+    *,
+    hub: SseHub | None = None,
+    artefacts: ArtefactStore | None = None,
+    artefacts_dir: FsPath | None = None,
+) -> FastAPI:
+    """Construct the FastAPI app. The hub and artefact store can be injected for tests."""
     app = FastAPI(title="HackSim Orchestrator", version="0.0.1")
     app.add_middleware(
         CORSMiddleware,
@@ -106,6 +114,12 @@ def create_app(*, hub: SseHub | None = None) -> FastAPI:
 
     app.state.hub = hub if hub is not None else SseHub()
     app.state.sims = {}
+    if artefacts is not None:
+        app.state.artefacts = artefacts
+    else:
+        app.state.artefacts = ArtefactStore(
+            base_dir=artefacts_dir or FsPath("sim-runs")
+        )
 
     @app.post("/api/sim", response_model=CreateSimResponse, status_code=status.HTTP_201_CREATED)
     def create_sim(req: CreateSimRequest):
@@ -161,6 +175,109 @@ def create_app(*, hub: SseHub | None = None) -> FastAPI:
             event_generator(),
             media_type="text/event-stream",
             headers={"Cache-Control": "no-cache, no-transform", "X-Accel-Buffering": "no"},
+        )
+
+    @app.post("/api/sim/{sim_id}/projects", status_code=201)
+    def register_project(
+        sim_id: Annotated[str, Path(min_length=1, max_length=64)],
+        payload: dict,
+    ):
+        """Role workers POST here after broadcasting project.submitted.
+
+        The orchestrator git-archives the working tree at the commit
+        hash into sim-runs/{sim_id}/projects/{project_id}/, then publishes
+        a project.submitted event onto the SSE stream so the frontend
+        learns about the new artefact.
+        """
+        store: ArtefactStore = app.state.artefacts
+        try:
+            record = store.register(sim_id, payload)
+        except ArtefactError as e:
+            raise HTTPException(status_code=400, detail=str(e)) from e
+
+        files = record.files()
+        app.state.hub.publish(
+            sim_id,
+            "project.submitted",
+            {
+                "project_id": record.project_id,
+                "title": record.title,
+                "tagline": record.tagline,
+                "commit_hash": record.commit_hash,
+                "entry_path": record.entry_path,
+                "files_count": len(files),
+                "team_id": payload.get("team_id"),
+                "bounty_id": payload.get("bounty_id"),
+            },
+        )
+        return {
+            "project_id": record.project_id,
+            "files": files,
+            "entry_path": record.entry_path,
+            "commit_hash": record.commit_hash,
+        }
+
+    @app.get("/api/sim/{sim_id}/projects/{pid}/files")
+    def list_project_files(
+        sim_id: Annotated[str, Path(min_length=1, max_length=64)],
+        pid: Annotated[str, Path(min_length=1, max_length=64)],
+    ):
+        store: ArtefactStore = app.state.artefacts
+        record = store.get(sim_id, pid)
+        if record is None:
+            raise HTTPException(status_code=404, detail="unknown project")
+        return {
+            "project_id": record.project_id,
+            "commit_hash": record.commit_hash,
+            "entry_path": record.entry_path,
+            "github_url": None,
+            "title": record.title,
+            "tagline": record.tagline,
+            "files": record.files(),
+        }
+
+    @app.get("/api/sim/{sim_id}/projects/{pid}/files/{rel:path}")
+    def read_project_file(
+        sim_id: Annotated[str, Path(min_length=1, max_length=64)],
+        pid: Annotated[str, Path(min_length=1, max_length=64)],
+        rel: str,
+    ):
+        store: ArtefactStore = app.state.artefacts
+        path = store.safe_path(sim_id, pid, rel)
+        if path is None or not path.exists() or not path.is_file():
+            raise HTTPException(status_code=404, detail="file not found")
+        media_type, _ = mimetypes.guess_type(path.name)
+        return FileResponse(
+            path=str(path),
+            media_type=media_type or "application/octet-stream",
+        )
+
+    @app.get("/api/sim/{sim_id}/projects/{pid}/static/{rel:path}")
+    def serve_static(
+        sim_id: Annotated[str, Path(min_length=1, max_length=64)],
+        pid: Annotated[str, Path(min_length=1, max_length=64)],
+        rel: str,
+    ):
+        """Static-file route used by the iframe modal.
+
+        Strict CSP makes the agent code safe to embed: no network calls,
+        no plugins, no top-level navigation, scripts and styles only from
+        the same origin or inline. The frontend pairs this with
+        sandbox=\"allow-scripts\" on the iframe element.
+        """
+        store: ArtefactStore = app.state.artefacts
+        path = store.safe_path(sim_id, pid, rel)
+        if path is None or not path.exists() or not path.is_file():
+            raise HTTPException(status_code=404, detail="file not found")
+        media_type, _ = mimetypes.guess_type(path.name)
+        return FileResponse(
+            path=str(path),
+            media_type=media_type or "application/octet-stream",
+            headers={
+                "Content-Security-Policy": CSP_HEADER,
+                "Cache-Control": "private, max-age=60",
+                "X-Content-Type-Options": "nosniff",
+            },
         )
 
     @app.get("/api/health")

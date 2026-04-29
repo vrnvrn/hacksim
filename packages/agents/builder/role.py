@@ -10,8 +10,11 @@
 
 from __future__ import annotations
 
+import json
 import os
 import secrets
+import urllib.error
+import urllib.request
 from pathlib import Path
 
 from packages.agents._runtime import WorkerState, loop_until_closed
@@ -21,6 +24,35 @@ from packages.skills.hacksim_network.hacksim_network import SkillContext
 from .build import write_project
 from .decisions import pick_bounty
 from .persona import display_name_for_peer_id, skill_profile_for_peer_id
+
+
+def _post_artefact_to_orchestrator(state: WorkerState, payload: dict) -> None:
+    """Tell the orchestrator about our submission so it can git-archive
+    the working tree under sim-runs/{sim_id}/projects/{project_id}/.
+
+    No-op when HACKSIM_ORCH_URL is not set (smoke harness mode).
+    """
+    orch = os.environ.get("HACKSIM_ORCH_URL")
+    if not orch:
+        return
+    url = f"{orch.rstrip('/')}/api/sim/{state.ctx.sim_id}/projects"
+    body = json.dumps(payload).encode("utf-8")
+    req = urllib.request.Request(
+        url,
+        data=body,
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=10.0) as resp:
+            state.emit(
+                "orch.registered",
+                {"status": resp.status, "project_id": payload.get("project_id")},
+            )
+    except urllib.error.HTTPError as e:
+        state.emit("orch.register_error", {"status": e.code, "body": e.read(20).decode("utf-8", "replace")})
+    except Exception as e:
+        state.emit("orch.register_error", {"error": str(e)})
 
 
 def run(ctx: SkillContext) -> None:
@@ -137,7 +169,11 @@ def _build_and_submit(state: WorkerState) -> None:
     topo = state.client.get_topology()
     skills = skill_profile_for_peer_id(topo.our_public_key)
 
-    work_dir = Path(os.environ.get("HACKSIM_BUILDER_WORK_DIR", os.getcwd())) / "project"
+    work_dir = Path(
+        os.environ.get("HACKSIM_BUILDER_WORK_DIR")
+        or os.environ.get("HACKSIM_WORK_DIR")
+        or os.getcwd()
+    ) / "project"
     state.emit("builder.building", {"work_dir": str(work_dir)})
 
     try:
@@ -192,3 +228,4 @@ def _build_and_submit(state: WorkerState) -> None:
             "sent_to": sent,
         },
     )
+    _post_artefact_to_orchestrator(state, payload)
