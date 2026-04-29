@@ -73,7 +73,7 @@ export function HeroPrompt({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mt-12 max-w-3xl">
+    <form onSubmit={handleSubmit} className="mt-6 lg:mt-8">
       <label htmlFor="hero-prompt" className="visually-hidden">
         Describe the hackathon you want
       </label>
@@ -83,7 +83,8 @@ export function HeroPrompt({
         onChange={(e) => setPrompt(e.target.value)}
         onKeyDown={handleKey}
         placeholder={PLACEHOLDER}
-        className="w-full rounded-3xl border border-border focus:border-accent focus:outline-none p-6 text-lg min-h-[140px] shadow-sm bg-surface text-ink placeholder:text-muted resize-vertical"
+        rows={3}
+        className="w-full rounded-2xl border border-border focus:border-accent focus:outline-none p-4 text-base min-h-[100px] shadow-sm bg-surface text-ink placeholder:text-muted resize-vertical"
         aria-describedby={error ? "hero-prompt-error" : undefined}
       />
       {error ? (
@@ -91,19 +92,19 @@ export function HeroPrompt({
           {error}
         </p>
       ) : null}
-      <div className="mt-4 flex flex-wrap items-center gap-3">
+      <div className="mt-3 flex flex-wrap items-center gap-3">
         <button
           type="submit"
           disabled={isPending}
           className={cn(
-            "rounded-md px-6 py-3 bg-accent text-white font-semibold hover:opacity-90 transition disabled:opacity-50",
+            "rounded-md px-5 py-2.5 bg-accent text-white text-sm font-semibold hover:opacity-90 transition disabled:opacity-50",
           )}
         >
           {isPending ? "Spinning up..." : "Spin up sim"}
         </button>
         <a
           href={exampleHref}
-          className="rounded-full border-2 border-ink bg-surface text-ink px-6 py-3 font-semibold hover:bg-ink hover:text-surface transition"
+          className="rounded-full border-2 border-ink bg-surface text-ink px-5 py-2.5 text-sm font-semibold hover:bg-ink hover:text-surface transition"
         >
           See an example run
         </a>

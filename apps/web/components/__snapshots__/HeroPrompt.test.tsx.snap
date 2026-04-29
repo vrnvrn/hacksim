@@ -3,12 +3,13 @@
 exports[`HeroPrompt > matches the default snapshot 1`] = `
 bound HTMLFormElement {
   "0": <textarea
-    class="w-full rounded-3xl border border-border focus:border-accent focus:outline-none p-6 text-lg min-h-[140px] shadow-sm bg-surface text-ink placeholder:text-muted resize-vertical"
+    class="w-full rounded-2xl border border-border focus:border-accent focus:outline-none p-4 text-base min-h-[100px] shadow-sm bg-surface text-ink placeholder:text-muted resize-vertical"
     id="hero-prompt"
     placeholder="an onchain agents hackathon with five sponsors and a $5k pool"
+    rows="3"
   />,
   "1": <button
-    class="rounded-md px-6 py-3 bg-accent text-white font-semibold hover:opacity-90 transition disabled:opacity-50"
+    class="rounded-md px-5 py-2.5 bg-accent text-white text-sm font-semibold hover:opacity-90 transition disabled:opacity-50"
     type="submit"
   >
     Spin up sim

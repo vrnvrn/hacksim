@@ -14,20 +14,27 @@ export function Nav() {
       >
         <Link
           href="/"
-          className="font-display font-semibold text-xl tracking-tight text-ink"
+          className="font-display font-semibold text-xl tracking-tight text-ink flex items-center gap-2"
           aria-label="HackSim home"
         >
-          HackSim
+          <span aria-hidden className="text-accent">◇</span>
+          hacksim
         </Link>
-        <ul className="flex items-center gap-8 text-sm font-medium text-body">
+        <ul className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm font-mono text-body uppercase tracking-wide">
           <li>
-            <Link href="/examples" className="hover:opacity-60 transition">
-              Examples
+            <Link
+              href="/examples"
+              className="px-2 py-1 hover:text-ink transition"
+            >
+              [ examples ]
             </Link>
           </li>
           <li>
-            <Link href="/docs" className="hover:opacity-60 transition">
-              Docs
+            <Link
+              href="/docs"
+              className="px-2 py-1 hover:text-ink transition"
+            >
+              [ docs ]
             </Link>
           </li>
           <li>
@@ -35,9 +42,9 @@ export function Nav() {
               href="https://github.com/gensyn-ai/axl"
               target="_blank"
               rel="noreferrer"
-              className="hover:opacity-60 transition"
+              className="px-2 py-1 hover:text-ink transition"
             >
-              GitHub
+              [ github ]
             </a>
           </li>
         </ul>

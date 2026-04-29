@@ -11,38 +11,44 @@ exports[`Nav > matches the default snapshot 1`] = `
   >
     <a
       aria-label="HackSim home"
-      class="font-display font-semibold text-xl tracking-tight text-ink"
+      class="font-display font-semibold text-xl tracking-tight text-ink flex items-center gap-2"
       href="/"
     >
-      HackSim
+      <span
+        aria-hidden="true"
+        class="text-accent"
+      >
+        ◇
+      </span>
+      hacksim
     </a>
     <ul
-      class="flex items-center gap-8 text-sm font-medium text-body"
+      class="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm font-mono text-body uppercase tracking-wide"
     >
       <li>
         <a
-          class="hover:opacity-60 transition"
+          class="px-2 py-1 hover:text-ink transition"
           href="/examples"
         >
-          Examples
+          [ examples ]
         </a>
       </li>
       <li>
         <a
-          class="hover:opacity-60 transition"
+          class="px-2 py-1 hover:text-ink transition"
           href="/docs"
         >
-          Docs
+          [ docs ]
         </a>
       </li>
       <li>
         <a
-          class="hover:opacity-60 transition"
+          class="px-2 py-1 hover:text-ink transition"
           href="https://github.com/gensyn-ai/axl"
           rel="noreferrer"
           target="_blank"
         >
-          GitHub
+          [ github ]
         </a>
       </li>
     </ul>

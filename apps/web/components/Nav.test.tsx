@@ -6,9 +6,9 @@ describe("Nav", () => {
   it("renders the wordmark and three primary links", () => {
     render(<Nav />);
     expect(screen.getByLabelText("HackSim home")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Examples" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Docs" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "GitHub" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /examples/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /docs/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /github/i })).toBeInTheDocument();
   });
 
   it("has banner landmark and primary nav landmark", () => {
