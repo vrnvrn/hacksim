@@ -32,13 +32,13 @@ def main() -> int:
     role_run = None
     try:
         if role == "bounty_designer":
-            from .bounty_designer import run as role_run  # noqa: F401
+            from .bounty_designer import run as role_run  # noqa: F401, F811
         elif role == "builder":
-            from .builder import run as role_run  # noqa: F401
+            from .builder import run as role_run  # noqa: F401, F811
         elif role == "judge":
-            from .judge import run as role_run  # noqa: F401
+            from .judge import run as role_run  # noqa: F401, F811
         elif role == "organiser":
-            from .organiser import run as role_run  # noqa: F401
+            from .organiser import run as role_run  # noqa: F401, F811
     except ImportError:
         role_run = None
 
