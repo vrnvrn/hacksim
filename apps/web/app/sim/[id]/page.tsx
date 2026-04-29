@@ -9,6 +9,7 @@ import { StatPill } from "@/components/StatPill";
 import { PhasePill } from "@/components/PhasePill";
 import { RunLog } from "@/components/RunLog";
 import { RefreshTicker } from "@/components/RefreshTicker";
+import { NowHappening } from "@/components/NowHappening";
 import { SubmissionsGrid } from "@/components/SubmissionsGrid";
 import { getSnapshot } from "@/lib/api";
 import { headers } from "next/headers";
@@ -49,14 +50,23 @@ export default async function SimPage({
       <Nav />
       <main className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-x-8 max-w-7xl mx-auto px-6 lg:px-8 pt-10 pb-24">
         <div className="min-w-0">
-          <header className="mb-12">
+          <header className="mb-12 space-y-5">
             <p className="text-xl text-body italic max-w-2xl leading-snug">
               &ldquo;{snapshot.prompt}&rdquo;
             </p>
-            <div className="mt-4 flex flex-wrap items-center gap-2">
+            <NowHappening snapshot={snapshot} />
+            <div className="flex flex-wrap items-center gap-2">
               <StatPill label={`${snapshot.builders.length} agents`} tone="muted" />
               <StatPill
                 label={`${snapshot.bounties.length} bounties`}
+                tone="muted"
+              />
+              <StatPill
+                label={`${snapshot.projects.length} projects`}
+                tone="muted"
+              />
+              <StatPill
+                label={`${snapshot.verdicts.length} verdicts`}
                 tone="muted"
               />
               <PhasePill phase={snapshot.phase} />
@@ -65,7 +75,7 @@ export default async function SimPage({
                   href={`/sim/${id}/showcase`}
                   className="ml-2 text-sm font-semibold text-accent hover:underline"
                 >
-                  View showcase
+                  View showcase &rarr;
                 </Link>
               ) : null}
             </div>
