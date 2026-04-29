@@ -3,6 +3,7 @@
 import { useTransition } from "react";
 import type { SimConfig } from "@/lib/types";
 import { cn } from "@/lib/cn";
+import { getAnthropicKey, isLocalhostOrigin } from "@/lib/anthropic-key";
 
 const PRESETS = [
   {
@@ -47,10 +48,18 @@ export function HeroExamplesAside() {
   function spinUp(prompt: string) {
     startTransition(async () => {
       try {
+        const apiKey = getAnthropicKey();
+        const body: Record<string, unknown> = {
+          prompt,
+          config: DEFAULT_CONFIG,
+        };
+        if (apiKey && isLocalhostOrigin()) {
+          body.anthropic_api_key = apiKey;
+        }
         const res = await fetch("/api/sim", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ prompt, config: DEFAULT_CONFIG }),
+          body: JSON.stringify(body),
         });
         if (!res.ok) throw new Error(`status ${res.status}`);
         const json = (await res.json()) as { id: string };

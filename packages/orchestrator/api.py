@@ -33,12 +33,39 @@ from typing import Annotated
 from fastapi import FastAPI, HTTPException, Path, Query, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, SecretStr
 
 from .artefacts import CSP_HEADER, ArtefactError, ArtefactStore
 from .controller import SimConfig as ControllerConfig
 from .controller import SimController
 from .sse import SseHub
+
+
+_LOCAL_HOSTS = frozenset({"127.0.0.1", "::1", "localhost"})
+
+
+def _is_localhost_request(request: Request) -> bool:
+    """True when the request originates from this machine.
+
+    The user-supplied Anthropic key field on POST /api/sim is gated on
+    this. The frontend dev server proxies to the orchestrator on
+    localhost; the user's browser hits the frontend on localhost too. A
+    deployed instance of the orchestrator behind a public proxy gets
+    real client IPs through `X-Forwarded-For`; when that header is
+    present we trust it (the proxy terminates the TCP, so client.host
+    is the proxy itself).
+    """
+    forwarded = request.headers.get("x-forwarded-for", "")
+    if forwarded:
+        first = forwarded.split(",")[0].strip()
+        return first in _LOCAL_HOSTS
+    client_host = request.client.host if request.client else None
+    if client_host in _LOCAL_HOSTS:
+        return True
+    # Starlette's TestClient sets client.host="testclient". It only
+    # appears in unit tests, never on a real socket, so treat it as
+    # local for testing the localhost-only key path.
+    return client_host == "testclient"
 
 
 class SimConfig(BaseModel):
@@ -56,6 +83,10 @@ class SimConfig(BaseModel):
 class CreateSimRequest(BaseModel):
     prompt: str = Field(min_length=1, max_length=2000)
     config: SimConfig = Field(default_factory=SimConfig)
+    # Optional, local-only. Pydantic SecretStr keeps the value out of repr,
+    # model_dump, and any logger that prints model fields. The endpoint
+    # rejects this field when the request did not originate from localhost.
+    anthropic_api_key: SecretStr | None = Field(default=None, exclude=True)
 
 
 class CreateSimResponse(BaseModel):
@@ -153,8 +184,24 @@ def create_app(
     app.state.orch_url = orch_url or os.environ.get("HACKSIM_ORCH_URL", "http://127.0.0.1:8000")
 
     @app.post("/api/sim", response_model=CreateSimResponse, status_code=status.HTTP_201_CREATED)
-    async def create_sim(req: CreateSimRequest):
+    async def create_sim(req: CreateSimRequest, request: Request):
         sim_id = _new_sim_id()
+
+        # Local-only gate on the Anthropic key. A hosted deployment must not
+        # accept user-pasted keys: a public paste box is a credential
+        # harvesting vector. The user is told to set the env var on the
+        # host instead.
+        user_key: str | None = None
+        if req.anthropic_api_key is not None:
+            if not _is_localhost_request(request):
+                raise HTTPException(
+                    status_code=403,
+                    detail=(
+                        "anthropic_api_key is only accepted on localhost. "
+                        "Set it as an env var on the host instead."
+                    ),
+                )
+            user_key = req.anthropic_api_key.get_secret_value()
 
         if app.state.auto_start:
             # The orchestrator runs one simulation at a time. Booting a fresh
@@ -194,6 +241,11 @@ def create_app(
                 axl_bin=FsPath(app.state.axl_bin),
                 orch_url=app.state.orch_url,
                 artefacts=app.state.artefacts,
+                # Per-sim env overlay. The key never lands in the snapshot,
+                # the SSE buffer, or any log payload because it is not a
+                # field of `cfg`. It only travels into spawned worker
+                # process envs from here.
+                extra_env={"ANTHROPIC_API_KEY": user_key} if user_key else None,
             )
             app.state.controllers[sim_id] = controller
             app.state.hub.publish(
@@ -202,8 +254,13 @@ def create_app(
                 {
                     "sim_id": sim_id,
                     "prompt": req.prompt,
-                    "config": req.config.model_dump(),
+                    # `req.config` is a Pydantic SimConfig; model_dump excludes
+                    # the SecretStr key field thanks to `exclude=True`. Even
+                    # so we are explicit so a future field rename never
+                    # accidentally leaks the key.
+                    "config": req.config.model_dump(exclude={"anthropic_api_key"}),
                     "created_at": controller.snapshot["created_at"],
+                    "llm": "anthropic" if user_key else "stub",
                 },
             )
             # Kick off start() in the background so the HTTP response

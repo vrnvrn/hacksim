@@ -64,6 +64,7 @@ class SimController:
         orch_url: str | None = None,
         artefacts: ArtefactStore | None = None,
         spawner: Spawner | None = None,
+        extra_env: dict[str, str] | None = None,
     ):
         self.sim_id = sim_id
         self.prompt = prompt
@@ -73,6 +74,10 @@ class SimController:
         self.axl_bin = axl_bin
         self.orch_url = orch_url
         self.artefacts = artefacts
+        # Per-sim secrets (currently the user-supplied ANTHROPIC_API_KEY)
+        # land in worker env via the spawner's extra_env hook. Never logged,
+        # never published to the hub, never written to disk.
+        self._extra_env: dict[str, str] = dict(extra_env or {})
         self._snapshot: dict = empty_snapshot(
             sim_id=sim_id,
             prompt=prompt,
@@ -117,7 +122,12 @@ class SimController:
         loop = asyncio.get_event_loop()
         organiser = await loop.run_in_executor(
             None,
-            lambda: self._spawner.spawn_role(role="organiser", index=0, is_bootstrap=True),
+            lambda: self._spawner.spawn_role(
+                role="organiser",
+                index=0,
+                is_bootstrap=True,
+                extra_env=self._extra_env or None,
+            ),
         )
         self._attach_tailer(organiser, role="organiser")
 
@@ -126,7 +136,11 @@ class SimController:
         for i in range(self.config.designers):
             handle = await loop.run_in_executor(
                 None,
-                lambda i=i: self._spawner.spawn_role(role="bounty_designer", index=i),
+                lambda i=i: self._spawner.spawn_role(
+                    role="bounty_designer",
+                    index=i,
+                    extra_env=self._extra_env or None,
+                ),
             )
             self._attach_tailer(handle, role="bounty_designer")
             designers.append(handle)
@@ -135,7 +149,11 @@ class SimController:
         for i in range(self.config.builders):
             handle = await loop.run_in_executor(
                 None,
-                lambda i=i: self._spawner.spawn_role(role="builder", index=i),
+                lambda i=i: self._spawner.spawn_role(
+                    role="builder",
+                    index=i,
+                    extra_env=self._extra_env or None,
+                ),
             )
             self._attach_tailer(handle, role="builder")
             builders.append(handle)
@@ -144,7 +162,11 @@ class SimController:
         for i in range(self.config.judges):
             handle = await loop.run_in_executor(
                 None,
-                lambda i=i: self._spawner.spawn_role(role="judge", index=i),
+                lambda i=i: self._spawner.spawn_role(
+                    role="judge",
+                    index=i,
+                    extra_env=self._extra_env or None,
+                ),
             )
             self._attach_tailer(handle, role="judge")
             judges.append(handle)

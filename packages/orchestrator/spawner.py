@@ -253,6 +253,7 @@ class Spawner:
         index: int = 0,
         is_bootstrap: bool = False,
         repo_root: Path | None = None,
+        extra_env: dict[str, str] | None = None,
     ) -> RoleHandle:
         """Boot one AXL node + one Python role worker process.
 
@@ -260,6 +261,11 @@ class Spawner:
         AXL_API_PORT, HACKSIM_ROLE, HACKSIM_SIM_ID exported. Stdout is
         captured to `<work_dir>/<role>.<index>.worker.log` so the
         orchestrator can tail it for SSE.
+
+        `extra_env` is a per-sim env overlay that takes precedence over the
+        orchestrator's own environment. Used to plumb a user-supplied
+        Anthropic API key into role workers without touching the host's
+        process env.
         """
         name = role if index == 0 and is_bootstrap else f"{role}.{index}"
         node = self.spawn(NodeSpec(name=name, is_bootstrap=is_bootstrap))
@@ -275,6 +281,9 @@ class Spawner:
         }
         if self.orch_url:
             env["HACKSIM_ORCH_URL"] = self.orch_url
+        if extra_env:
+            # Per-sim secrets land last so they win over any host env vars.
+            env.update(extra_env)
 
         worker_log = node.work_dir / f"{name}.worker.log"
         worker_log_file = open(worker_log, "w")

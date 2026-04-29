@@ -120,6 +120,16 @@ const ITEMS: Faq[] = [
           haiku 4.5 call. Either way, the AXL mesh, the cross-agent
           envelopes, and the artefact pipeline are real.
         </P>
+        <P>
+          Two ways to set the key when running locally. Export{" "}
+          <Code>ANTHROPIC_API_KEY</Code> in the shell that runs{" "}
+          <Code>make demo</Code>, or paste it into the password field in
+          the home page Settings popover. The in-UI input only renders
+          when the page is served from <Code>localhost</Code>, the field
+          is <Code>SecretStr</Code> on the server so it never reaches a
+          log line, and the orchestrator refuses the field with HTTP 403
+          from any non-loopback origin.
+        </P>
       </>
     ),
   },

@@ -1,10 +1,15 @@
 "use client";
 
-import { useState, useTransition, type FormEvent, type KeyboardEvent } from "react";
+import { useEffect, useState, useTransition, type FormEvent, type KeyboardEvent } from "react";
 import { Settings2 } from "lucide-react";
 import * as Popover from "@radix-ui/react-popover";
 import type { SimConfig } from "@/lib/types";
 import { cn } from "@/lib/cn";
+import {
+  getAnthropicKey,
+  setAnthropicKey,
+  isLocalhostOrigin,
+} from "@/lib/anthropic-key";
 
 const DEFAULT_CONFIG: SimConfig = {
   builders: 8,
@@ -51,10 +56,15 @@ export function HeroPrompt({
     }
     startTransition(async () => {
       try {
+        const apiKey = getAnthropicKey();
+        const body: Record<string, unknown> = { prompt: trimmed, config };
+        if (apiKey && isLocalhostOrigin()) {
+          body.anthropic_api_key = apiKey;
+        }
         const res = await fetch("/api/sim", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ prompt: trimmed, config }),
+          body: JSON.stringify(body),
         });
         if (!res.ok) throw new Error(`status ${res.status}`);
         const json = (await res.json()) as { id: string };
@@ -172,6 +182,7 @@ function SettingsPopover({
             Counts are capped so the loopback mesh stays watchable. Bigger
             sims need a real multi-host bootstrap.
           </p>
+          <KeyRow />
           <div className="mt-5 flex items-center justify-between border-t border-border pt-4">
             <button
               type="button"
@@ -197,6 +208,76 @@ function SettingsPopover({
         </Popover.Content>
       </Popover.Portal>
     </Popover.Root>
+  );
+}
+
+function KeyRow() {
+  // Render only when the page itself is being served from localhost. The
+  // orchestrator independently refuses the field with 403 from any other
+  // origin, but hiding the input on a hosted page keeps a remote user
+  // from ever pasting a key into a non-trusted surface.
+  const [isLocal, setIsLocal] = useState(false);
+  const [value, setValue] = useState("");
+  const [revealed, setRevealed] = useState(false);
+
+  useEffect(() => {
+    setIsLocal(isLocalhostOrigin());
+    setValue(getAnthropicKey());
+  }, []);
+
+  function onChange(next: string) {
+    setValue(next);
+    setAnthropicKey(next);
+  }
+
+  if (!isLocal) return null;
+  return (
+    <div className="mt-5 border-t border-border pt-4">
+      <label
+        htmlFor="anthropic-key"
+        className="text-sm font-medium text-ink flex items-center justify-between"
+      >
+        <span>Anthropic API key</span>
+        <span className="text-[10px] uppercase tracking-wider font-mono text-muted">
+          local only
+        </span>
+      </label>
+      <p className="text-[11px] text-muted mt-1 leading-relaxed">
+        Optional. With a key set, role workers call Claude haiku 4.5
+        instead of the deterministic stub. The key never leaves your
+        machine: it rides one POST and is dropped from logs and the SSE
+        buffer.
+      </p>
+      <div className="mt-2 flex items-center gap-2">
+        <input
+          id="anthropic-key"
+          type={revealed ? "text" : "password"}
+          autoComplete="off"
+          spellCheck={false}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="sk-ant-..."
+          className="flex-1 min-w-0 rounded-md border border-border bg-canvas/40 px-2 py-1.5 text-sm font-mono text-ink placeholder:text-muted focus:outline-none focus:border-accent"
+        />
+        <button
+          type="button"
+          onClick={() => setRevealed((r) => !r)}
+          className="rounded-md border border-border px-2 py-1.5 text-[11px] font-medium text-body hover:bg-canvas transition"
+          aria-label={revealed ? "Hide key" : "Show key"}
+        >
+          {revealed ? "Hide" : "Show"}
+        </button>
+      </div>
+      {value ? (
+        <button
+          type="button"
+          onClick={() => onChange("")}
+          className="mt-2 text-[11px] text-muted hover:text-ink underline transition"
+        >
+          Clear key
+        </button>
+      ) : null}
+    </div>
   );
 }
 
