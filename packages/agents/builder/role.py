@@ -142,14 +142,28 @@ def _form_team(state: WorkerState) -> None:
     sent = state.fanout(wire, repeats=2, interval=2.0)
 
     state.team_formed = True  # type: ignore[attr-defined]
+    # Full envelope payload to the orchestrator's snapshot, plus a second
+    # diagnostic event with the broadcast counts.
     state.emit(
         "team.formed",
+        {
+            "id": team_id,
+            "team_id": team_id,
+            "bounty_id": chosen.get("id"),
+            "members": [topo.our_public_key],
+            "display_names": [display_name_for_peer_id(topo.our_public_key)],
+            "skills_summary": {
+                display_name_for_peer_id(topo.our_public_key): skills,
+            },
+        },
+    )
+    state.emit(
+        "team.broadcast",
         {
             "team_id": team_id,
             "bounty_id": chosen.get("id"),
             "bounty_title": chosen.get("title"),
             "sponsor": chosen.get("sponsor_name"),
-            "members": 1,
             "sent_to_initial": sent,
         },
     )
@@ -208,12 +222,12 @@ def _build_and_submit(state: WorkerState) -> None:
     sent = state.fanout(wire, repeats=4, interval=2.0)
 
     state.submitted = True  # type: ignore[attr-defined]
+    # Full payload to the orchestrator's snapshot, plus a diagnostic event.
+    state.emit("project.submitted", dict(payload))
     state.emit(
-        "project.submitted",
+        "project.broadcast",
         {
             "project_id": project_id,
-            "title": result["title"],
-            "commit_hash": result["commit_hash"],
             "files": len(result["files"]),
             "sent_to_initial": sent,
         },

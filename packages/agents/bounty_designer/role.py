@@ -67,13 +67,14 @@ def _on_phase_tick(state: WorkerState, env: Envelope) -> None:
     sent = state.fanout(wire, repeats=4, interval=2.0)
 
     state.posted = True  # type: ignore[attr-defined]
+    # Emit the full envelope payload so the orchestrator's log tailer
+    # can hand it to the snapshot accumulator. Diagnostic counts go on a
+    # second `*.broadcast` event so they do not pollute the snapshot view.
+    state.emit("bounty.posted", {**payload, "sponsor_peer_id": topo.our_public_key})
     state.emit(
-        "bounty.posted",
+        "bounty.broadcast",
         {
             "id": payload["id"],
-            "sponsor_name": payload["sponsor_name"],
-            "title": payload["title"],
-            "prize_amount_usd": payload["prize_amount_usd"],
             "sent_to_initial": sent,
             "rebroadcasts_scheduled": 4,
         },

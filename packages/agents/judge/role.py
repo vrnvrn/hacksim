@@ -88,7 +88,14 @@ def _on_phase_tick(state: WorkerState, env: Envelope) -> None:
         wire = encode_envelope(rubric_env)
         sent = state.fanout(wire, repeats=2, interval=2.0)
         state.rubric_published = True  # type: ignore[attr-defined]
-        state.emit("rubric.published", {"archetype": archetype["name"], "sent_to_initial": sent})
+        # Emit the full envelope payload so the orchestrator's snapshot
+        # accumulator gets the judge_peer_id and rubric. Diagnostic info
+        # goes on a separate event.
+        state.emit("rubric.published", dict(rubric_env["payload"]))
+        state.emit(
+            "rubric.broadcast",
+            {"archetype": archetype["name"], "sent_to_initial": sent},
+        )
 
     projects = list(state.projects.values())  # type: ignore[attr-defined]
     if not projects:
@@ -117,13 +124,8 @@ def _on_phase_tick(state: WorkerState, env: Envelope) -> None:
         sent = state.fanout(wire, repeats=2, interval=2.0)
 
         state.scored.add(pid)  # type: ignore[attr-defined]
+        state.emit("verdict.published", dict(verdict))
         state.emit(
-            "verdict.published",
-            {
-                "project_id": pid,
-                "total": verdict["total"],
-                "scores": verdict["scores"],
-                "archetype": verdict.get("archetype"),
-                "sent_to_initial": sent,
-            },
+            "verdict.broadcast",
+            {"project_id": pid, "sent_to_initial": sent},
         )

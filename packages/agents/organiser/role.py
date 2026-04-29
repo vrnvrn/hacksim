@@ -65,6 +65,10 @@ def _make_phase_emitter(phase: int):
         )
         wire = encode_envelope(env)
         sent = state.fanout(wire, repeats=2, interval=1.5)
+        # Emit the phase.tick payload itself so the orchestrator's
+        # snapshot accumulator sees it. Diagnostic counts go on a
+        # separate `phase.tick.broadcast` event.
+        state.emit("phase.tick", {"phase": phase, "id": f"phase_{phase}"})
         state.emit(
             "phase.tick.broadcast",
             {"phase": phase, "sent_to_initial": sent},
@@ -126,14 +130,21 @@ def _close_hackathon(state: WorkerState) -> None:
     sent = state.fanout(wire, repeats=2, interval=1.5)
 
     state.closed_emitted = True  # type: ignore[attr-defined]
+    # Emit the full hackathon.closed payload so the orchestrator's
+    # snapshot accumulator sees the leaderboard in full. Diagnostic info
+    # lands on the separate `hackathon.closed.broadcast` event.
     state.emit(
         "hackathon.closed",
         {
-            "winners": leaderboard[:3],
+            "id": "hackathon_closed",
+            "leaderboard": leaderboard,
             "project_count": len(leaderboard),
             "verdict_count": sum(r["verdicts"] for r in leaderboard),
-            "sent_to_initial": sent,
         },
+    )
+    state.emit(
+        "hackathon.closed.broadcast",
+        {"sent_to_initial": sent, "winners_top3": leaderboard[:3]},
     )
 
     # After a brief grace period for the showcase, ask the worker to stop.
