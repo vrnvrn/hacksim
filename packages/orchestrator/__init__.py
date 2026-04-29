@@ -8,6 +8,8 @@ from .artefacts import (
     ArtefactStore,
     CSP_HEADER,
 )
+from .controller import SimConfig, SimController
+from .log_tailer import LogTailer
 from .spawner import (
     NodeHandle,
     NodeSpec,
@@ -25,9 +27,12 @@ __all__ = [
     "ArtefactRecord",
     "ArtefactStore",
     "CSP_HEADER",
+    "LogTailer",
     "NodeHandle",
     "NodeSpec",
     "RoleHandle",
+    "SimConfig",
+    "SimController",
     "Spawner",
     "SpawnerError",
     "Event",
