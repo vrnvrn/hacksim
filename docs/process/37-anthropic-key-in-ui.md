@@ -1,4 +1,4 @@
-# Commit 37: in-UI Anthropic API key paste, localhost-gated
+# 37. In-UI Anthropic API key paste, localhost-gated
 
 ## What changed
 
@@ -108,17 +108,10 @@ curl -sX POST http://127.0.0.1:8000/api/sim \
 
 Returns 403 with `"anthropic_api_key is only accepted on localhost..."`.
 
-## AXL surface used
+## Gensyn surface used
 
-None on this commit; the change lives entirely in the orchestrator
-process boundary and the frontend. The AXL nodes are unchanged. The
-key only reaches role worker processes through `extra_env`, layered on
-top of the AXL discovery env vars but separate from them.
+None on this commit. The change lives entirely in the orchestrator process boundary and the frontend. The AXL nodes are unchanged. The key only reaches role worker processes through `extra_env`, layered on top of the AXL discovery env vars but separate from them.
 
-## What comes next
+## Up next
 
-A `make demo` flag that mirrors the env var into a sentinel so the UI
-can surface a "key already configured on host" hint in Settings, plus
-a free-LLM fallback through the Vercel AI Gateway for a hosted demo
-where local key pasting is not on the table. Tracked under §19b in
-`refs/PLAN.md`.
+A `make demo` flag that mirrors the env var into a sentinel so the UI can surface a "key already configured on host" hint in Settings, plus a free-LLM fallback through the Vercel AI Gateway for a hosted demo where local key pasting is not on the table. Tracked under §19b in `refs/PLAN.md`.
