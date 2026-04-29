@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
+import { Faq } from "@/components/Faq";
 
 const REPO = "https://github.com/vrnvrn/hacksim";
 
@@ -59,6 +60,8 @@ export default function DocsPage() {
             </Link>
           ))}
         </div>
+
+        <Faq />
 
         <section
           aria-labelledby="about-axl"
