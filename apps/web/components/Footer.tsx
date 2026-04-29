@@ -9,8 +9,8 @@ export function Footer() {
         <div>
           <h2 className="font-display font-semibold text-xl text-ink">HackSim</h2>
           <p className="text-body text-sm mt-3 max-w-xs leading-relaxed">
-            Run your own hackathon with agents. Open source, MIT, built on
-            Gensyn AXL.
+            Run your own hackathon with agents. Built at ETHGlobal Open Agents
+            2026 for the Gensyn AXL bounty. Open source, MIT.
           </p>
         </div>
         <div>
@@ -25,17 +25,7 @@ export function Footer() {
                 target="_blank"
                 rel="noreferrer"
               >
-                AXL, the Agent eXchange Layer
-              </a>
-            </li>
-            <li>
-              <a
-                href="https://github.com/gensyn-ai/collaborative-autoresearch-demo"
-                className="text-body hover:text-ink transition"
-                target="_blank"
-                rel="noreferrer"
-              >
-                collaborative-autoresearch-demo
+                Gensyn AXL
               </a>
             </li>
             <li>
@@ -48,21 +38,31 @@ export function Footer() {
                 Claude Code
               </a>
             </li>
-          </ul>
-        </div>
-        <div>
-          <h3 className="text-sm font-semibold uppercase tracking-wide text-muted">
-            Code
-          </h3>
-          <ul className="mt-3 space-y-2 text-sm">
             <li>
               <a
-                href="https://github.com/gensyn-ai/axl"
+                href="https://ethglobal.com/events/agents"
                 className="text-body hover:text-ink transition"
                 target="_blank"
                 rel="noreferrer"
               >
-                GitHub
+                ETHGlobal Open Agents 2026
+              </a>
+            </li>
+          </ul>
+        </div>
+        <div>
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-muted">
+            HackSim
+          </h3>
+          <ul className="mt-3 space-y-2 text-sm">
+            <li>
+              <a
+                href="https://github.com/vrnvrn/hacksim"
+                className="text-body hover:text-ink transition"
+                target="_blank"
+                rel="noreferrer"
+              >
+                github.com/vrnvrn/hacksim
               </a>
             </li>
             <li>

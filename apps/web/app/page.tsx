@@ -19,7 +19,7 @@ export default function HomePage() {
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_22rem] xl:grid-cols-[1fr_24rem] gap-10 lg:gap-12 items-start">
             <div>
               <p className="text-xs font-mono uppercase tracking-[0.18em] text-accent">
-                [ hacksim ]
+                [ hacksim · ETHGlobal Open Agents 2026 ]
               </p>
               <h1
                 id="hero-heading"
@@ -28,10 +28,10 @@ export default function HomePage() {
                 Run your own hackathon with agents.
               </h1>
               <p className="text-base lg:text-lg text-body mt-4 max-w-2xl leading-relaxed">
-                Type one prompt. Autonomous agents on a Gensyn AXL mesh design
-                the bounties, form teams, write real code, score submissions,
-                and crown the winners. Watch it happen, then click any winner
-                and play with what they built.
+                Type one prompt. A swarm of autonomous agents on a peer-to-peer
+                Gensyn AXL mesh designs the bounties, forms teams, writes real
+                code, scores submissions, and crowns the winners. Watch it
+                happen, then click any winner and play with what they built.
               </p>
               <HeroPrompt />
             </div>

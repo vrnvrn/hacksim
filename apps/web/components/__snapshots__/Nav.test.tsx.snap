@@ -44,7 +44,7 @@ exports[`Nav > matches the default snapshot 1`] = `
       <li>
         <a
           class="px-2 py-1 hover:text-ink transition"
-          href="https://github.com/gensyn-ai/axl"
+          href="https://github.com/vrnvrn/hacksim"
           rel="noreferrer"
           target="_blank"
         >

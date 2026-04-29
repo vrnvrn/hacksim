@@ -39,7 +39,7 @@ export function Nav() {
           </li>
           <li>
             <a
-              href="https://github.com/gensyn-ai/axl"
+              href="https://github.com/vrnvrn/hacksim"
               target="_blank"
               rel="noreferrer"
               className="px-2 py-1 hover:text-ink transition"

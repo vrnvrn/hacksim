@@ -2,24 +2,34 @@
 
 > Run your own hackathon with agents.
 
-Type one prompt. Autonomous agents on a Gensyn AXL mesh design the bounties, form teams, write real code, score submissions, and crown the winners. You watch it happen in your browser, then click any winning project and play with what the agents built.
+Type one prompt. A swarm of autonomous agents on a peer-to-peer Gensyn AXL mesh designs the bounties, forms teams, writes real code, scores submissions, and crowns the winners. You watch it happen in your browser, then click any winning project and play with what the agents built.
 
-A submission for the Gensyn AXL hackathon. Built on [AXL](https://github.com/gensyn-ai/axl), the Agent eXchange Layer. Inspired by Gensyn's [collaborative-autoresearch-demo](https://github.com/gensyn-ai/collaborative-autoresearch-demo).
+**Built at ETHGlobal Open Agents 2026** for the Gensyn AXL bounty (Best Application of the Agent eXchange Layer). HackSim is the project; Gensyn AXL is the peer-to-peer transport it runs on. We are not affiliated with Gensyn.
 
-## What is HackSim
+Repo: [github.com/vrnvrn/hacksim](https://github.com/vrnvrn/hacksim).
 
-HackSim is an Agent Town. Every role in the hackathon is an autonomous agent running its own AXL node, peering with the others through the Yggdrasil mesh, talking peer to peer. There is no central coordinator. The orchestrator only spawns processes and serves the UI; every cross-agent byte traverses a real AXL mesh.
+## What HackSim does
 
-- **Organiser**, one per sim. Reads the human prompt, kicks off phases, tallies the leaderboard.
-- **Bounty Designers**, three by default. Each is a "sponsor" with a name, a budget, and an opinion about what they want built.
-- **Builders**, eight by default. Each has a skill profile. They form teams, write a single-page web project into a real working directory, commit the result.
-- **Judges**, three by default. Each writes their own rubric, opens every submission in a sandboxed Playwright browser, scores based on real interactions.
+You type a prompt like `a research hackathon on protein folding` or `an onchain agents hackathon with five sponsors and a $5k pool`. HackSim spawns a small population of agents that each play one role:
 
-Every agent is a Claude Code session pointed at its own working directory, with a local AXL node and the `hacksim-network` skill that wraps the mesh as slash commands.
+- **Organiser**, one per sim. Reads the prompt, kicks off phases, tallies the leaderboard.
+- **Bounty designers**, three by default. Each is a sponsor with a name, a budget, and an opinion about what they want built.
+- **Builders**, eight by default. Each has a skill profile. They form teams, write a single-page web project into a real working directory, git-commit the result.
+- **Judges**, three by default. Each writes its own rubric and scores every project, optionally interacting with the running demo via a Playwright browser.
+
+Every agent runs its own AXL node. The orchestrator only spawns processes and serves the UI. Every cross-agent byte goes through the Yggdrasil mesh AXL builds on top of, end to end encrypted, no central message broker.
+
+## What is Gensyn AXL
+
+[AXL](https://docs.gensyn.ai/tech/agent-exchange-layer) is Gensyn's Agent eXchange Layer: a single Go binary that gives any application an encrypted peer-to-peer communication layer with no servers, no cloud, and no accounts. Your code talks to localhost; AXL handles encryption, routing, and peer discovery across the mesh. Anything that can make HTTP requests can use it.
+
+In one paragraph: each AXL node has its own ed25519 identity, joins a peer mesh by dialling a bootstrap, and exposes five HTTP endpoints on `127.0.0.1:9002` (`/topology`, `/send`, `/recv`, `/mcp/{peer}/{service}`, `/a2a/{peer}`). Every byte between nodes is encrypted twice (TLS plus Yggdrasil end-to-end). AXL ships with built-in MCP and A2A integration for typed addressed calls between agents.
+
+HackSim is one possible "Agent Town" answer to the bounty's open prompt. The full AXL source is at [github.com/gensyn-ai/axl](https://github.com/gensyn-ai/axl).
 
 ## Quickstart
 
-Mirror of AXL's quickstart. From a clean clone:
+From a clean clone:
 
 ```bash
 git submodule update --init --recursive
@@ -28,52 +38,40 @@ make hooks-install
 make demo
 ```
 
-`make demo` boots one organiser, three bounty designers, eight builders, and three judges, opens `http://localhost:3000`, and waits for you to type a prompt.
+`make demo` boots the FastAPI orchestrator and the Next.js dev server together, opens `http://localhost:3000`, and waits for you to type a prompt or click an example.
 
 ### Prerequisites
 
 - Go 1.25.5 or newer (for the AXL binary).
 - Node 20 or newer with `pnpm` (for the web UI).
 - Python 3.10 or newer.
-- [Claude Code](https://docs.anthropic.com/claude/docs/claude-code) installed and authenticated.
 - `openssl` (for ed25519 keys).
-
-The Anthropic API key needs to be set in `~/.config/claude-code/credentials.json`, the standard Claude Code location.
+- Optional: an `ANTHROPIC_API_KEY` exported in the shell. Without one, every agent falls back to a deterministic stub that still produces real, distinct output. With one, every decision and every project HTML upgrades to a Claude haiku 4.5 call.
 
 ## How HackSim uses AXL
 
-Five layers of AXL exercised by every cross-agent call:
+Five AXL surfaces exercised by every cross-agent flow:
 
-1. **Discovery** via `GET /topology`. We pull peers from the topology endpoint, exactly as `research_network.py:214-234` does, unioning direct peers with the spanning tree.
-2. **Routing** via the Yggdrasil mesh. Every peer id is the public half of an ed25519 keypair; routing is automatic.
-3. **End to end encryption** via two layers, TLS on the peering link and Yggdrasil end to end above it.
-4. **Broadcast** via `POST /send`. Bounty announcements, project submissions, verdict publications. Fan-out loop adapted from `research_network.py:285-298`.
-5. **Typed addressed calls** via `POST /mcp/{peer}/{service}`. Builders call `judge/score` over JSON-RPC. Judges call `registry/submit_project`. The Gensyn autoresearch demo does not exercise this surface; HackSim does.
+1. **Discovery** via `GET /topology`. We pull peers from the topology endpoint and union direct peers with the spanning tree, the same algorithm Gensyn's autoresearch demo uses.
+2. **Routing** via the Yggdrasil mesh AXL ships with. Every peer id is the public half of an ed25519 keypair; routing is automatic.
+3. **End-to-end encryption** via two layers: TLS on the peering link and Yggdrasil end-to-end above it.
+4. **Broadcast** via `POST /send`. Bounty announcements, team formations, project submissions, verdict publications. We add a re-broadcast and gossip pattern on top so the mesh propagates reliably on a fresh local network.
+5. **Typed addressed calls** via `POST /mcp/{peer}/{service}`. Builders call `judge/score` over JSON-RPC across the mesh; the local Python MCP router dispatches to the right service. This is the layer Gensyn's autoresearch demo does not exercise; HackSim does.
 
-The full mapping from judging criterion to code lives in [docs/process/](docs/process/), where every commit ships a five-section process note explaining what changed, why, how to verify, which Gensyn surface it exercises, and what comes next.
+The full mapping from judging criterion to code lives in [docs/process/](docs/process/), where every commit ships a five-section process note explaining what changed, why, how to verify, which AXL surface it exercises, and what comes next.
 
-## For builders
+## For Gensyn judges
 
-Want to extend HackSim? Replace a role, add a new role, or wire HackSim to your own AXL bootstrap?
-
-- **Replace a role.** Each persona lives at `packages/agents/<role>/CLAUDE.md`. Edit the file, restart the sim, the agent inherits the new brief.
-- **Add a role.** Copy an existing role directory, write a new `CLAUDE.md`, add an MCP service if the role needs typed tools, register it with the orchestrator's role table.
-- **Point at a public AXL bootstrap.** Edit `scripts/run_sim.sh` and replace the loopback bootstrap with a public peer URI (Gensyn ships `tls://34.46.48.224:9001` and `tls://136.111.135.206:9001`).
-
-See [docs/AGENTS.md](docs/AGENTS.md) for the full role catalogue with persona files verbatim.
-
-## For Gensyn
-
-Mapping the judging criteria to the code that satisfies them.
+We mapped each judging criterion to the code paths and docs that satisfy it.
 
 | Criterion                  | Where to look                                                                          |
 |----------------------------|----------------------------------------------------------------------------------------|
-| Depth of AXL integration   | `packages/skills/hacksim-network/` (skill mirrors `autoresearch-network`), `packages/agents/*/mcp_*.py` (typed MCP services across the mesh) |
-| Quality of code            | Conventional Commits, every commit tested, [docs/process/](docs/process/) per commit   |
-| Clear documentation        | This README, [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [docs/AGENTS.md](docs/AGENTS.md), [docs/process/](docs/process/) chronological |
+| Depth of AXL integration   | `packages/skills/hacksim-network/` (skill mirrors the autoresearch-network shape), `packages/agents/*/role.py` (typed MCP calls and gossip across the mesh) |
+| Quality of code            | Conventional Commits, every commit tested, [docs/process/](docs/process/) per commit, writing-rule pre-commit hook |
+| Clear documentation        | This README, [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [docs/AGENTS.md](docs/AGENTS.md), the per-commit process notes |
 | Working examples           | `make demo` boots a full sim; click any winner card to play the project the agents built |
 
-Qualification gate ("communication across separate AXL nodes, not in-process"): every role runs its own AXL binary with its own ed25519 identity. `tcpdump lo0` during a run shows only HTTP to `127.0.0.1:9002`. Every cross-agent message went through Yggdrasil.
+Qualification gate ("communication across separate AXL nodes, not in-process"): every role runs its own AXL binary with its own ed25519 identity. `tcpdump lo0` during a run shows only HTTP to `127.0.0.1:9002` and the AXL TLS peering port. Every cross-agent message went through Yggdrasil.
 
 ## Architecture
 
@@ -93,15 +91,15 @@ Organiser  Designer  Builder   Judge
 Each role process owns:
 
 1. One AXL node (the Go binary), with its own ed25519 key and ports.
-2. One Claude Code session, in its own working directory.
-3. The `hacksim-network` skill, wrapping the local AXL HTTP API.
+2. One Python role worker (lite mode) or one Claude Code session (stretch mode) running its persona.
+3. The `hacksim-network` skill, wrapping the local AXL HTTP API as a small set of helpers.
 4. A `CLAUDE.md` persona file holding the role's brief.
 
 Builders also own a working tree where they write project artefacts. Judges also own a Playwright sandbox for hands-on evaluation.
 
 ## Status
 
-This README ships in commit 02. Real Gensyn integration arrives in commit 03 (AXL submodule). Full quickstart works after commit 32 (`make demo`). Track progress in [refs/COMMIT_LOG.md](refs/COMMIT_LOG.md) (local only) and the corresponding [docs/process/](docs/process/) entries (public).
+Built during ETHGlobal Open Agents 2026. The full system runs end to end with `make demo` and produces a real leaderboard of projects you can open in your browser. Track the build chronologically in [docs/process/](docs/process/) (every commit ships a process note).
 
 ## License
 
