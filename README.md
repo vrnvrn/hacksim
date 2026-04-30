@@ -101,6 +101,12 @@ Each role process owns:
 
 Builders also own a working tree where they write project artefacts. Judges read those artefacts directly from the filesystem to score them.
 
+## Hosted preview
+
+The Next.js frontend deploys to Vercel as a fixture-mode preview so judges can browse the UX (hero, examples, FAQ, docs, showcase modal) without installing anything. The hero "Spin up sim" button still works, but the snapshot, run log, and three demo projects are pre-baked under `apps/web/lib/mocks/`. The page surfaces a banner that says so.
+
+The real AXL mesh runs locally. Run `make demo` from a clone to watch 15 AXL Go nodes peer through Yggdrasil on loopback and spin up real projects. A hosted-orchestrator (Mode V2) deploy is on the roadmap; see [docs/DEPLOY_VERCEL.md](docs/DEPLOY_VERCEL.md) for the full plan and the one-time dashboard setup.
+
 ## Status
 
 Built during ETHGlobal Open Agents 2026. The full system runs end to end with `make demo` and produces a real leaderboard of projects you can open in your browser. Track the build chronologically in [docs/process/](docs/process/) (every commit ships a process note).
