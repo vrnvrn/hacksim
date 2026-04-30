@@ -84,31 +84,36 @@ const EXAMPLES: Array<{ project: Project; prompt: string }> = [
   },
 ];
 
-export function HeroExamples() {
+export function HeroExamples({ showHeader = true }: { showHeader?: boolean } = {}) {
   return (
     <section
-      aria-labelledby="examples-heading"
-      className="mt-24 max-w-7xl mx-auto px-6 lg:px-8"
+      aria-labelledby={showHeader ? "examples-heading" : undefined}
+      aria-label={showHeader ? undefined : "Example runs grid"}
+      className={showHeader ? "mt-24 max-w-7xl mx-auto px-6 lg:px-8" : ""}
     >
-      <div className="flex items-baseline justify-between">
-        <h2
-          id="examples-heading"
-          className="font-display text-3xl lg:text-4xl font-semibold text-ink"
-        >
-          Example runs
-        </h2>
-        <Link
-          href="/examples"
-          className="text-sm font-medium text-body hover:text-ink transition"
-        >
-          See all
-        </Link>
-      </div>
-      <p className="text-sm text-muted mt-3 max-w-2xl">
-        Click any card to spin up a fresh sim with that prompt. The titles
-        and taglines are illustrative; every run produces its own projects.
-      </p>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-12 mt-10">
+      {showHeader ? (
+        <>
+          <div className="flex items-baseline justify-between">
+            <h2
+              id="examples-heading"
+              className="font-display text-3xl lg:text-4xl font-semibold text-ink"
+            >
+              Example runs
+            </h2>
+            <Link
+              href="/examples"
+              className="text-sm font-medium text-body hover:text-ink transition"
+            >
+              See all
+            </Link>
+          </div>
+          <p className="text-sm text-muted mt-3 max-w-2xl">
+            Click any card to spin up a fresh sim with that prompt. The titles
+            and taglines are illustrative; every run produces its own projects.
+          </p>
+        </>
+      ) : null}
+      <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-12 ${showHeader ? "mt-10" : ""}`}>
         {EXAMPLES.map(({ project, prompt }) => (
           <ExampleCard key={project.id} project={project} prompt={prompt} />
         ))}

@@ -16,7 +16,7 @@ export default function ExamplesPage() {
           tile copy verbatim.
         </p>
         <div className="mt-12">
-          <HeroExamples />
+          <HeroExamples showHeader={false} />
         </div>
       </main>
       <Footer />
