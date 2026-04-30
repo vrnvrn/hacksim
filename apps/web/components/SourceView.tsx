@@ -42,7 +42,11 @@ export function SourceView({
     };
   }, [file.path, file.kind, content]);
 
-  const lineCount = content.split(/\r?\n/).length;
+  // "".split(/\r?\n/) is [""] (length 1), so an empty buffer reads as
+  // "1 lines" without this guard. The Code tab's contentError alert is
+  // the primary signal; this is the defence-in-depth line for any
+  // future call site that hands us empty content without an alert.
+  const lineCount = content.length === 0 ? 0 : content.split(/\r?\n/).length;
 
   function copyToClipboard() {
     if (typeof navigator === "undefined") return;
