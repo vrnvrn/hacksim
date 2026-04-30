@@ -103,9 +103,9 @@ Builders also own a working tree where they write project artefacts. Judges read
 
 ## Hosted preview
 
-The Next.js frontend deploys to Vercel as a fixture-mode preview so judges can browse the UX (hero, examples, FAQ, docs, showcase modal) without installing anything. The hero "Spin up sim" button still works, but the snapshot, run log, and three demo projects are pre-baked under `apps/web/lib/mocks/`. The page surfaces a banner that says so.
+The hosted preview at Vercel is the on-ramp, not the demo. The frontend deploys against fixtures so a visitor can browse the UX (hero, examples, FAQ, docs, showcase modal) without installing anything. Every page in the preview carries a banner declaring the recorded-run nature, and the live and showcase headers carry a date-stamped pill so a snapshot cannot be misread as a live mesh.
 
-The real AXL mesh runs locally. Run `make demo` from a clone to watch 15 AXL Go nodes peer through Yggdrasil on loopback and spin up real projects. A hosted-orchestrator (Mode V2) deploy is on the roadmap; see [docs/DEPLOY_VERCEL.md](docs/DEPLOY_VERCEL.md) for the full plan and the one-time dashboard setup.
+The canonical demo runs on your machine. The submission package (video plus repo) is the demo; the hosted page is where curious judges land between watching the video and cloning the repo. `make demo` boots the real AXL mesh in five minutes; the architecture and message flow are in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), and the hosted `/docs` page renders a "Run it locally" panel with the same quickstart, expected timings, and a verification block. Forks who want to ship their own preview can read [docs/DEPLOY_VERCEL.md](docs/DEPLOY_VERCEL.md).
 
 ## Status
 
