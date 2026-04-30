@@ -213,10 +213,17 @@ def create_app(
             # The orchestrator runs one simulation at a time. Booting a fresh
             # one stops every prior controller so their AXL nodes do not
             # saturate the loopback Yggdrasil mesh and starve the new sim's
-            # bounty.posted broadcasts. Wait for the prior shutdowns to
-            # finish before spawning the new controller; otherwise two
-            # rapid spin-up clicks race and the old AXL binaries fight the
-            # new ones for ports.
+            # bounty.posted broadcasts.
+            #
+            # Stops fire as background tasks so the POST returns the new sim
+            # id quickly (the redirect to /sim/<id> happens immediately).
+            # Stop_all walks 15 nodes with up to 5s each, so awaiting it
+            # would block the response by ~30 seconds. The hub channel for
+            # the old sim is closed synchronously so its SSE subscribers
+            # disconnect right away. If the new spawn races into a port that
+            # the old AXL binary still holds, Spawner raises SpawnerError;
+            # the SimErrorBanner on /sim/[id] then surfaces it to the user
+            # within seconds rather than after a full timeout.
             prior = list(app.state.controllers.values())
             app.state.controllers.clear()
 
@@ -231,8 +238,7 @@ def create_app(
                     old.hub.close(old.sim_id)
                 except Exception:
                     pass
-            if prior:
-                await asyncio.gather(*(_stop_one(o) for o in prior))
+                asyncio.create_task(_stop_one(old))
 
             cfg = ControllerConfig(
                 builders=req.config.builders,

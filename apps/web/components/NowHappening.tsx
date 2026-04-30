@@ -25,6 +25,7 @@ export function NowHappening({ snapshot }: { snapshot: Snapshot }) {
     builders,
     judges,
     bounties: snapshot.bounties.length,
+    builderCount: snapshot.builders.length,
     teams: snapshot.teams.length,
     projects: snapshot.projects.length,
     verdicts: snapshot.verdicts.length,
@@ -57,12 +58,26 @@ function describe(s: {
   builders: number;
   judges: number;
   bounties: number;
+  builderCount: number;
   teams: number;
   projects: number;
   verdicts: number;
   expectedVerdicts: number;
   closed: boolean;
 }): { headline: string; detail?: string } {
+  // Pre-spawn state: the controller has been created (snapshot exists with
+  // a prompt and config) but no builder.registered events have fired yet,
+  // which means the AXL nodes are still coming up. Without this branch the
+  // live page sits on "Sponsor agents are drafting their bounties" for the
+  // first ~5 seconds, which reads as drift rather than progress.
+  if (s.phase === 0 && s.builderCount === 0 && s.bounties === 0) {
+    return {
+      headline: "Booting the AXL mesh.",
+      detail:
+        "Spawning 15 AXL Go nodes on loopback, each with its own ed25519 identity. The first builder.registered event arrives in about five seconds; the mesh is fully peered shortly after.",
+    };
+  }
+
   if (s.phase === 0) {
     if (s.bounties === 0) {
       return {
