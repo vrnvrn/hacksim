@@ -2,18 +2,19 @@ import Link from "next/link";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 import { Faq } from "@/components/Faq";
+import { RunItLocally } from "@/components/RunItLocally";
 
 const REPO = "https://github.com/vrnvrn/hacksim";
 
 const ITEMS: Array<{ title: string; body: string; href: string }> = [
   {
     title: "Architecture",
-    body: "How the FastAPI orchestrator, the AXL nodes, and the role workers fit together. Includes the message-flow diagram and the five-layer view of the AXL surfaces HackSim exercises.",
+    body: "How the FastAPI orchestrator, the AXL nodes, and the role workers fit together. Includes the message-flow diagram and the three AXL surfaces HackSim exercises (topology, send, recv).",
     href: `${REPO}/blob/main/docs/ARCHITECTURE.md`,
   },
   {
     title: "Agents",
-    body: "One page per role: organiser, bounty designer, builder, judge. Persona files in full, MCP tools surfaced, example envelopes for every event type.",
+    body: "One page per role: organiser, bounty designer, builder, judge. Persona files in full, inbound and outbound envelopes for every event type, deterministic vs Claude decision module split.",
     href: `${REPO}/blob/main/docs/AGENTS.md`,
   },
   {
@@ -60,6 +61,8 @@ export default function DocsPage() {
             </Link>
           ))}
         </div>
+
+        <RunItLocally />
 
         <Faq />
 
