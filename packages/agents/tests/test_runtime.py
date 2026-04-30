@@ -177,6 +177,43 @@ class TestLoopHandlers:
         assert len(skipped) == 1
 
 
+class TestBroadcastNow:
+    def test_send_failure_is_emitted_as_event(self, ctx, fake, capsys):
+        """Per-peer send errors surface on stdout instead of being swallowed.
+
+        Quality-of-code remediation from the second-pass judge review:
+        broadcast_now used to `except Exception: pass`, so a misconfigured
+        mesh appeared as quiet starvation in the UI.
+        """
+        client = ctx.client()
+        # Stub send to fail every time; topology-derived peer set is two.
+        boom = RuntimeError("simulated send failure")
+
+        def failing_send(peer_id: str, data: bytes, **_: object) -> int:
+            raise boom
+
+        client.send = failing_send  # type: ignore[method-assign]
+        fake.state.topology = {
+            "our_ipv6": "200::1",
+            "our_public_key": OUR,
+            "peers": [{"public_key": PEER_A, "up": True}],
+            "tree": [{"public_key": PEER_B}],
+        }
+
+        state = WorkerState(ctx=ctx, client=client)
+        sent = state.broadcast_now(b"payload")
+        assert sent == 0
+
+        out = capsys.readouterr().out.splitlines()
+        events = [json.loads(line) for line in out if "axl.send_failed" in line]
+        assert len(events) == 2
+        peer_ids = sorted(e["payload"]["peer_id"] for e in events)
+        assert peer_ids == sorted([PEER_A, PEER_B])
+        for e in events:
+            assert e["payload"]["error_class"] == "RuntimeError"
+            assert "simulated send failure" in e["payload"]["error"]
+
+
 class TestStartStopEvents:
     def test_started_and_stopped_events_emitted(self, ctx, fake, capsys):
         state = WorkerState(ctx=ctx, client=ctx.client())
