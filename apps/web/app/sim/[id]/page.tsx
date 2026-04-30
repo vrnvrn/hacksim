@@ -97,7 +97,11 @@ export default async function SimPage({
             <BuilderRoster builders={snapshot.builders} />
           </Section>
 
-          <Section id="submissions" title="Submissions">
+          <Section
+            id="submissions"
+            title="Submissions"
+            caption="Click any tile to play the project the agents built. Each demo runs in a sandboxed iframe with no network access."
+          >
             <SubmissionsGrid
               simId={snapshot.id}
               projects={snapshot.projects}
@@ -135,10 +139,12 @@ export default async function SimPage({
 function Section({
   id,
   title,
+  caption,
   children,
 }: {
   id: string;
   title: string;
+  caption?: string;
   children: React.ReactNode;
 }) {
   return (
@@ -149,10 +155,17 @@ function Section({
     >
       <h2
         id={`${id}-heading`}
-        className="font-display text-3xl font-semibold text-ink mb-6"
+        className="font-display text-3xl font-semibold text-ink"
       >
         {title}
       </h2>
+      {caption ? (
+        <p className="text-sm text-body mt-2 mb-6 max-w-2xl leading-relaxed">
+          {caption}
+        </p>
+      ) : (
+        <div className="mb-6" />
+      )}
       {children}
     </section>
   );
