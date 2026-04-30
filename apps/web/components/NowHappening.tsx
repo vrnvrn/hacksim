@@ -66,29 +66,29 @@ function describe(s: {
   if (s.phase === 0) {
     if (s.bounties === 0) {
       return {
-        headline: `${plural(s.designers, "sponsor agent")} are drafting bounties.`,
+        headline: "Sponsor agents are drafting their bounties.",
         detail:
           "Each sponsor has its own peer id, its own opinion, and its own AXL node. Bounties land on the mesh as bounty.posted envelopes.",
       };
     }
     if (s.bounties < s.designers) {
       return {
-        headline: `${plural(s.designers, "sponsor")} drafting bounties (${s.bounties} of ${s.designers} posted).`,
+        headline: "Sponsors are still drafting.",
         detail: "Builders are queued up; they pick once every sponsor has posted.",
       };
     }
     return {
-      headline: `${s.designers} sponsors posted ${s.bounties} bounties.`,
+      headline: "Bounties are posted.",
       detail: "Builders pick a bounty next.",
     };
   }
 
   if (s.phase === 1) {
     return {
-      headline: `${plural(s.builders, "builder")} are reading the bounties and forming teams.`,
+      headline: "Builders are reading the bounties and forming teams.",
       detail:
         s.teams > 0
-          ? `${plural(s.teams, "team")} formed so far. The builders pick a bounty that fits their skill profile, then broadcast team.formed.`
+          ? "Teams are forming. Each builder picks a bounty that fits their skill profile, then broadcasts team.formed."
           : "Builders pick a bounty that fits their skill profile, then broadcast team.formed.",
     };
   }
@@ -96,13 +96,14 @@ function describe(s: {
   if (s.phase === 2) {
     if (s.projects === 0) {
       return {
-        headline: `${plural(s.builders, "builder")} are writing their projects.`,
+        headline: "Builders are writing their projects.",
         detail:
           "Each builder writes a real index.html plus app.js and style.css into its own working tree, git-commits, then broadcasts project.submitted with the commit hash.",
       };
     }
+    const ratio = s.projects < s.builders ? "First submissions are arriving." : "Most builders have submitted.";
     return {
-      headline: `Builders are submitting (${s.projects} of ${s.builders} ${maybeS(s.builders, "project")} in).`,
+      headline: ratio,
       detail: "The orchestrator git-archives each submission and serves it under a strict CSP so the showcase can iframe it.",
     };
   }
@@ -110,19 +111,19 @@ function describe(s: {
   if (s.phase === 3) {
     if (s.verdicts === 0) {
       return {
-        headline: `${plural(s.judges, "judge")} are reviewing every submission.`,
+        headline: "Judges are reviewing every submission.",
         detail:
           "Each judge writes its own rubric, opens the projects, and broadcasts verdict.published per project.",
       };
     }
     if (s.expectedVerdicts > 0 && s.verdicts < s.expectedVerdicts) {
       return {
-        headline: `Judging in progress (${s.verdicts} of ${s.expectedVerdicts} scores in).`,
-        detail: `${plural(s.judges, "judge")} reviewing ${plural(s.projects, "submission")}.`,
+        headline: "Judging in progress.",
+        detail: "Verdict counts are visible in the StatPills above; each judge scores every submission against the rubric they wrote.",
       };
     }
     return {
-      headline: `Judging complete. ${plural(s.verdicts, "verdict")} cast across ${plural(s.projects, "project")}.`,
+      headline: "Judging complete.",
       detail: "The organiser is tallying the leaderboard.",
     };
   }
@@ -136,7 +137,7 @@ function describe(s: {
     };
   }
   return {
-    headline: `Hackathon closed. ${plural(s.projects, "project")} ranked.`,
+    headline: "Hackathon closed.",
     detail: "Open the showcase to read the leaderboard and play with the winners.",
   };
 }
