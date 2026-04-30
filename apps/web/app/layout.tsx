@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { inter, jetbrainsMono } from "./fonts";
+import { HostedModeBanner } from "@/components/HostedModeBanner";
 
 export const metadata: Metadata = {
   title: "HackSim, run your own hackathon with agents",
@@ -25,7 +26,10 @@ export default function RootLayout({
       className={`${inter.variable} ${jetbrainsMono.variable}`}
       suppressHydrationWarning
     >
-      <body className="bg-surface text-ink antialiased">{children}</body>
+      <body className="bg-surface text-ink antialiased">
+        <HostedModeBanner />
+        {children}
+      </body>
     </html>
   );
 }

@@ -52,7 +52,7 @@ describe("HostedModeBanner", () => {
     expect(container).toBeEmptyDOMElement();
   });
 
-  it("renders the fixture-mode notice when both env vars are true (Vercel V1)", async () => {
+  it("renders the recorded-run notice when both env vars are true (Vercel V1)", async () => {
     process.env[HOSTED_KEY] = "true";
     process.env[MOCKS_KEY] = "true";
     const Banner = await loadBanner();
@@ -60,10 +60,13 @@ describe("HostedModeBanner", () => {
 
     const note = screen.getByRole("note", { name: /hosted preview notice/i });
     expect(note).toBeInTheDocument();
-    expect(note).toHaveTextContent(/fixtures, not a live AXL mesh/i);
+    expect(note).toHaveTextContent(/recorded run, not a live AXL mesh/i);
     expect(note).toHaveTextContent(/make demo/i);
 
-    const repoLink = screen.getByRole("link", { name: /repo/i });
+    const localLink = screen.getByRole("link", { name: /run it locally/i });
+    expect(localLink).toHaveAttribute("href", "/docs#run-it-locally");
+
+    const repoLink = screen.getByRole("link", { name: /^repo$/i });
     expect(repoLink).toHaveAttribute("href", "https://github.com/vrnvrn/hacksim");
     expect(repoLink).toHaveAttribute("target", "_blank");
   });
