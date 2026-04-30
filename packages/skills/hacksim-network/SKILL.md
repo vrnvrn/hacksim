@@ -8,15 +8,17 @@ description: |
 
 # hacksim-network
 
-Each role in a HackSim simulation runs a Claude Code session with this
-skill installed. The slash commands wrap the local AXL HTTP API at
-`127.0.0.1:$AXL_API_PORT` so the agent never has to write urllib code by
-hand.
+In the default `make demo` path, every HackSim role runs as a Python
+worker under the orchestrator's Spawner (`packages/agents/<role>/role.py`).
+The worker imports `hacksim_network.py` directly; the slash commands
+listed below wrap the same module so a Claude Code session can drive the
+mesh interactively if you opt into one. The skill exists for both call
+paths.
 
-This skill mirrors `skills/autoresearch-network/` from Gensyn's
-collaborative-autoresearch-demo. The wire format is the same JSON
-envelope shape, the broadcast loop is the same fan-out over `/send`, the
-recv drain is the same dedupe-by-(sender, type, id).
+The wire format mirrors Gensyn's `skills/autoresearch-network/` from the
+collaborative-autoresearch-demo. The JSON envelope shape, the fan-out
+broadcast loop over `/send`, and the recv drain (dedupe by
+sender/type/id) are taken from `research_network.py` verbatim.
 
 ## Environment
 
@@ -39,12 +41,15 @@ The orchestrator's Spawner sets these when it launches the role process.
 | `/recv`             | Drain the local /recv queue, return all pending envelopes as JSON.              |
 | `/post-bounty`      | Designer only: broadcast a `bounty.posted` envelope from a JSON arg.            |
 | `/submit-project`   | Builder only: broadcast a `project.submitted` envelope with commit hash.        |
-| `/score-project`    | Judge only: call `/mcp/{builder_peer}/judge tools/call score` over the mesh.    |
-| `/demo-project`     | Judge only: render a project artefact in headless Playwright, return summary.   |
-| `/leaderboard`      | Organiser only: tally verdicts, return ranked list.                             |
 
 Each command exits 0 on success. Output is JSON unless the command says
 otherwise. Errors print to stderr and exit non-zero.
+
+Judges read submitted artefacts directly from the filesystem and
+broadcast `verdict.published` over `/send`; the organiser tallies
+verdicts in-process and broadcasts `hackathon.closed`. Neither path
+needs a slash command. If you wire MCP-based judging in a future commit,
+add a `/score-project` row here; do not document it ahead of the code.
 
 ## Implementation
 

@@ -61,7 +61,7 @@ const ITEMS: Faq[] = [
           ed25519 keypair and its own ports. They peer through a single TLS
           bootstrap on <Code>127.0.0.1:9100</Code>.
         </P>
-        <P>Four AXL HTTP surfaces exercised by the running sim:</P>
+        <P>Three AXL HTTP surfaces exercised by the running sim:</P>
         <Ul>
           <li>
             <Code>GET /topology</Code> for peer discovery (the algorithm is
@@ -69,23 +69,29 @@ const ITEMS: Faq[] = [
           </li>
           <li>
             <Code>POST /send</Code> for broadcast (bounty.posted,
-            team.formed, project.submitted, verdict.published, phase.tick).
+            team.formed, project.submitted, rubric.published,
+            verdict.published, phase.tick, hackathon.closed).
           </li>
           <li>
             <Code>GET /recv</Code> to drain inbound envelopes from each
             role&rsquo;s queue.
           </li>
-          <li>
-            <Code>POST /mcp/{`{peer}`}/{`{service}`}</Code> for typed
-            JSON-RPC across the mesh, used when builders call a
-            judge&rsquo;s <Code>score</Code> tool over Yggdrasil.
-          </li>
         </Ul>
         <P>
-          Every cross-agent message travels through the Yggdrasil mesh AXL
-          builds on top of. The orchestrator only spawns processes and
-          serves the UI; it never relays agent traffic. Removing AXL
-          silences the simulation.
+          AXL also ships <Code>/mcp/{`{peer}`}/{`{service}`}</Code> for
+          typed JSON-RPC across the mesh and{" "}
+          <Code>/a2a/{`{peer}`}</Code> for agent-to-agent streaming. We
+          do not exercise either in this submission; HackSim&rsquo;s
+          choreography rides envelopes end to end. Wiring MCP-based
+          judging is on the v2 list.
+        </P>
+        <P>
+          Every cross-agent envelope travels through the Yggdrasil mesh
+          AXL builds on top of. Builders also <Code>POST</Code> artefact
+          metadata to the orchestrator over a separate HTTP channel; that
+          path is filesystem registration for the showcase iframe, not
+          agent control. Phase ticks, bounties, projects, rubrics, and
+          verdicts ride AXL. Removing AXL silences the simulation.
         </P>
       </>
     ),
@@ -98,13 +104,13 @@ const ITEMS: Faq[] = [
           Same transport (AXL), different shape. The autoresearch demo is a
           flat topology where identical agents broadcast findings on one
           envelope type and adopt each other&rsquo;s improvements. HackSim
-          has four typed roles in a phased lifecycle (bounty design, team
-          formation, build, judging, showcase), eight envelope types, and
-          uses the <Code>/mcp/{`{peer}`}/{`{service}`}</Code> surface for
-          typed addressed calls between roles. The autoresearch demo does
-          not exercise <Code>/mcp</Code>. We borrow the broadcast loop and
-          the topology dedup pattern verbatim from{" "}
-          <Code>research_network.py</Code>; the rest is HackSim.
+          has four typed roles (organiser, bounty designer, builder,
+          judge) in a phased lifecycle (bounty design, team formation,
+          build, judging, showcase) and eight envelope types. We borrow
+          the broadcast loop and the topology dedup pattern verbatim from{" "}
+          <Code>research_network.py</Code>; the role differentiation,
+          phase choreography, artefact pipeline, and showcase modal are
+          HackSim.
         </P>
       </>
     ),

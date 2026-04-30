@@ -23,7 +23,7 @@ Every agent runs its own AXL node. The orchestrator only spawns processes and se
 
 [AXL](https://docs.gensyn.ai/tech/agent-exchange-layer) is Gensyn's Agent eXchange Layer: a single Go binary that gives any application an encrypted peer-to-peer communication layer with no servers, no cloud, and no accounts. Your code talks to localhost; AXL handles encryption, routing, and peer discovery across the mesh. Anything that can make HTTP requests can use it.
 
-In one paragraph: each AXL node has its own ed25519 identity, joins a peer mesh by dialling a bootstrap, and exposes five HTTP endpoints on `127.0.0.1:9002` (`/topology`, `/send`, `/recv`, `/mcp/{peer}/{service}`, `/a2a/{peer}`). Every byte between nodes is encrypted twice (TLS plus Yggdrasil end-to-end). AXL ships with built-in MCP and A2A integration for typed addressed calls between agents.
+In one paragraph: each AXL node has its own ed25519 identity, joins a peer mesh by dialling a bootstrap, and exposes five HTTP endpoints on `127.0.0.1:9002` (`/topology`, `/send`, `/recv`, `/mcp/{peer}/{service}`, `/a2a/{peer}`). Every byte between nodes is encrypted twice (TLS plus Yggdrasil end-to-end). AXL ships with built-in MCP and A2A integration for typed addressed calls between agents; HackSim exercises the first three of those surfaces and treats MCP and A2A as roadmap items.
 
 HackSim is one possible "Agent Town" answer to the bounty's open prompt. The full AXL source is at [github.com/gensyn-ai/axl](https://github.com/gensyn-ai/axl).
 
@@ -52,13 +52,15 @@ The default demo population is **1 organiser, 3 bounty designers, 8 builders, 3 
 
 ## How HackSim uses AXL
 
-Five AXL surfaces exercised by every cross-agent flow:
+Three AXL HTTP surfaces carry every cross-agent message:
 
 1. **Discovery** via `GET /topology`. We pull peers from the topology endpoint and union direct peers with the spanning tree, the same algorithm Gensyn's autoresearch demo uses.
-2. **Routing** via the Yggdrasil mesh AXL ships with. Every peer id is the public half of an ed25519 keypair; routing is automatic.
-3. **End-to-end encryption** via two layers: TLS on the peering link and Yggdrasil end-to-end above it.
-4. **Broadcast** via `POST /send`. Bounty announcements, team formations, project submissions, verdict publications. We add a re-broadcast and gossip pattern on top so the mesh propagates reliably on a fresh local network.
-5. **Typed addressed calls** via `POST /mcp/{peer}/{service}`. Builders call `judge/score` over JSON-RPC across the mesh; the local Python MCP router dispatches to the right service. This is the layer Gensyn's autoresearch demo does not exercise; HackSim does.
+2. **Broadcast** via `POST /send`. Bounty announcements, team formations, project submissions, rubric publications, verdict publications, phase ticks, hackathon close. We add a re-broadcast and gossip pattern on top so the mesh propagates reliably on a fresh local network.
+3. **Inbox drain** via `GET /recv`. Each role's worker drains its queue, dedupes by `(sender, type, payload_id)`, and dispatches to a per-envelope handler.
+
+Underneath those surfaces, AXL provides Yggdrasil routing across the mesh and end-to-end encryption (TLS on the peering link and Yggdrasil end-to-end above it). AXL also ships `POST /mcp/{peer}/{service}` for typed JSON-RPC and `/a2a/{peer}` for streaming; HackSim does not exercise either in this submission. Wiring an MCP-based judge round trip is on the v2 list and is sketched in `refs/PLAN.md` section 19c.
+
+Builders also `POST` artefact metadata to the orchestrator over a separate HTTP channel. That path is filesystem registration for the showcase iframe (the orchestrator runs `git archive` on the builder's working tree and serves it under a strict CSP); it is not agent control. Phase ticks, bounties, projects, rubrics, and verdicts ride AXL.
 
 The full mapping from judging criterion to code lives in [docs/process/](docs/process/), where every commit ships a five-section process note explaining what changed, why, how to verify, which AXL surface it exercises, and what comes next.
 
@@ -68,7 +70,7 @@ We mapped each judging criterion to the code paths and docs that satisfy it.
 
 | Criterion                  | Where to look                                                                          |
 |----------------------------|----------------------------------------------------------------------------------------|
-| Depth of AXL integration   | `packages/skills/hacksim-network/` (skill mirrors the autoresearch-network shape), `packages/agents/*/role.py` (typed MCP calls and gossip across the mesh) |
+| Depth of AXL integration   | `packages/skills/hacksim-network/` (skill mirrors the autoresearch-network shape), `packages/agents/_runtime.py` (broadcast, fanout with timed re-broadcasts, gossip-style reforward with sender/type/id dedupe), `tests/integration/test_two_node_send.py` (two real AXL binaries exchange one envelope cross-node) |
 | Quality of code            | Conventional Commits, every commit tested, [docs/process/](docs/process/) per commit, writing-rule pre-commit hook |
 | Clear documentation        | This README, [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [docs/AGENTS.md](docs/AGENTS.md), the per-commit process notes |
 | Working examples           | `make demo` boots a full sim; click any winner card to play the project the agents built |
@@ -93,7 +95,7 @@ Organiser  Designer  Builder   Judge
 Each role process owns:
 
 1. One AXL node (the Go binary), with its own ed25519 key and ports.
-2. One Python role worker (lite mode) or one Claude Code session (stretch mode) running its persona.
+2. One Python role worker running its persona (`packages/agents/<role>/role.py`). Each worker imports the `hacksim_network` skill module directly; a Claude Code session driving the same skill is a documented opt-in, not the default demo path.
 3. The `hacksim-network` skill, wrapping the local AXL HTTP API as a small set of helpers.
 4. A `CLAUDE.md` persona file holding the role's brief.
 
