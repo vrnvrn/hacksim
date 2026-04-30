@@ -223,8 +223,9 @@ function SettingsPopover({
                 })
               }
               className="rounded-full border border-border px-3 py-1 text-xs font-medium text-body hover:bg-canvas transition"
+              aria-label="Use light mode (3 builders, 1 judge, 1 designer)"
             >
-              Small mode (3, 1, 1)
+              Light mode (faster, fewer agents)
             </button>
             <Popover.Close
               className="text-xs font-medium text-accent hover:underline"

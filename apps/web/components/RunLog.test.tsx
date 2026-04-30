@@ -50,7 +50,7 @@ describe("RunLog", () => {
   it("renders an empty state then appends an envelope", async () => {
     render(<RunLog simId="sim_x" />);
     expect(
-      screen.getByText(/waiting for the mesh/i),
+      screen.getByText(/booting the agents/i),
     ).toBeInTheDocument();
     const es = FakeEventSource.instances[0]!;
     await act(async () => {

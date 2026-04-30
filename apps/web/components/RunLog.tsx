@@ -118,7 +118,9 @@ export function RunLog({ simId }: { simId: string }) {
         )}
       >
         {lines.length === 0 ? (
-          <p className="text-canvas/40">Waiting for the mesh to fill up...</p>
+          <p className="text-canvas/40">
+            Booting the agents... first events arrive in about five seconds.
+          </p>
         ) : null}
         {lines.map((env, i) => (
           <RunLine key={i} env={env} />
