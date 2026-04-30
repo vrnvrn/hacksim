@@ -30,6 +30,21 @@ def _post_artefact_to_orchestrator(state: WorkerState, payload: dict) -> None:
     """Tell the orchestrator about our submission so it can git-archive
     the working tree under sim-runs/{sim_id}/projects/{project_id}/.
 
+    Filesystem registration, not agent control.
+
+    The agent control plane in HackSim rides AXL: phase ticks, bounty
+    announcements, team formations, project submissions, rubrics, and
+    verdicts all flow through `POST /send` envelopes that drain from
+    `/recv`. This call is the second HTTP channel: builders also POST
+    artefact metadata directly to the orchestrator (over a separate
+    HTTP connection, not the AXL bridge) so the orchestrator can run
+    `git archive` on the builder's working tree and serve the result
+    under a strict CSP for the showcase iframe.
+
+    Removing this call breaks the showcase modal Demo and Code tabs
+    but does not silence the simulation; envelopes keep flowing. The
+    qualification gate is satisfied by the AXL channel alone.
+
     No-op when HACKSIM_ORCH_URL is not set (smoke harness mode).
     """
     orch = os.environ.get("HACKSIM_ORCH_URL")
