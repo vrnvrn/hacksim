@@ -18,7 +18,7 @@ export function RecordedRunPill({ createdAt }: { createdAt: string }) {
     <span
       role="status"
       aria-label={`Recorded run from ${date}`}
-      className="inline-flex items-center gap-2 rounded-full border border-accent/40 bg-accent/10 px-3 py-1 text-xs font-mono uppercase tracking-[0.14em] text-accent"
+      className="inline-flex items-center gap-2 rounded-full border border-border bg-canvas px-3 py-1 text-xs font-mono uppercase tracking-[0.14em] text-muted"
     >
       <span aria-hidden="true">[ recorded {date} ]</span>
     </span>
