@@ -13,6 +13,7 @@ from __future__ import annotations
 import json
 import os
 import secrets
+import time
 import urllib.error
 import urllib.request
 from pathlib import Path
@@ -52,22 +53,52 @@ def _post_artefact_to_orchestrator(state: WorkerState, payload: dict) -> None:
         return
     url = f"{orch.rstrip('/')}/api/sim/{state.ctx.sim_id}/projects"
     body = json.dumps(payload).encode("utf-8")
-    req = urllib.request.Request(
-        url,
-        data=body,
-        headers={"Content-Type": "application/json"},
-        method="POST",
-    )
-    try:
-        with urllib.request.urlopen(req, timeout=10.0) as resp:
-            state.emit(
-                "orch.registered",
-                {"status": resp.status, "project_id": payload.get("project_id")},
-            )
-    except urllib.error.HTTPError as e:
-        state.emit("orch.register_error", {"status": e.code, "body": e.read(20).decode("utf-8", "replace")})
-    except Exception as e:
-        state.emit("orch.register_error", {"error": str(e)})
+
+    # One initial attempt plus one retry. The 15-node spawn can briefly
+    # saturate the orchestrator on slow loopbacks; a single retry with a
+    # short backoff covers transient failures without inflating the
+    # average submit time. After two failures we emit
+    # builder.artefact_register_failed so the run log shows it instead
+    # of the user finding an empty showcase modal at the end.
+    last_error: dict | None = None
+    for attempt in range(2):
+        if attempt:
+            time.sleep(0.5)
+        req = urllib.request.Request(
+            url,
+            data=body,
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=10.0) as resp:
+                state.emit(
+                    "orch.registered",
+                    {
+                        "status": resp.status,
+                        "project_id": payload.get("project_id"),
+                        "attempts": attempt + 1,
+                    },
+                )
+                return
+        except urllib.error.HTTPError as e:
+            last_error = {
+                "status": e.code,
+                "body": e.read(200).decode("utf-8", "replace"),
+                "attempt": attempt + 1,
+            }
+        except Exception as e:
+            last_error = {"error": str(e), "attempt": attempt + 1}
+    if last_error is not None:
+        state.emit("orch.register_error", last_error)
+        state.emit(
+            "builder.artefact_register_failed",
+            {
+                "project_id": payload.get("project_id"),
+                "attempts": 2,
+                "last_error": last_error,
+            },
+        )
 
 
 def run(ctx: SkillContext) -> None:
