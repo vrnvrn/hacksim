@@ -121,6 +121,12 @@ class SimController:
         # sim's value.
         os.environ["HACKSIM_PACE"] = self.config.pace
 
+        # Publish an axl.binary event before any spawn fires. Captures
+        # the binary path, size, and mtime so the run log shows which
+        # build is in play. Useful when a stale build silently changes
+        # behaviour after a submodule update.
+        self._publish_axl_binary_health()
+
         # 1) Bootstrap organiser.
         loop = asyncio.get_event_loop()
         organiser = await loop.run_in_executor(
@@ -249,6 +255,34 @@ class SimController:
         except Exception:
             pass
         self._on_event(event_type, payload)
+
+    def _publish_axl_binary_health(self) -> None:
+        """Emit an axl.binary event capturing path, size, and mtime so the
+        run log shows which build is in play. AXL itself does not expose a
+        --version flag (verified against third_party/axl/cmd/node/main.go),
+        so we surface the on-disk metadata as the closest proxy.
+        """
+        axl_path = self._spawner.axl_bin
+        try:
+            stat = axl_path.stat()
+            payload = {
+                "path": str(axl_path),
+                "size_bytes": stat.st_size,
+                "mtime": stat.st_mtime,
+                "executable": True,
+            }
+        except FileNotFoundError:
+            payload = {
+                "path": str(axl_path),
+                "size_bytes": 0,
+                "mtime": 0,
+                "executable": False,
+                "error": "binary not found at the configured path",
+            }
+        try:
+            self.hub.publish(self.sim_id, "axl.binary", payload)
+        except Exception:
+            pass
 
 
 # ---------------------------------------------------------------------- helpers
