@@ -1,9 +1,11 @@
 """HackSim role worker entrypoint.
 
 Reads HACKSIM_ROLE from the environment and dispatches to the matching
-role module's run() function. Roles that have not landed yet fall back
-to the stub heartbeat loop so the harness can be smoke-tested before
-agent personas are written.
+role module's run() function. All four shipping roles (bounty_designer,
+builder, judge, organiser) live under packages.agents.<role>; the stub
+heartbeat at the bottom is a safety net for unknown role labels and for
+ImportError on the role module, so a misconfigured spawn cannot wedge
+the worker process.
 
 Invoked by the orchestrator's Spawner via:
 
@@ -26,8 +28,8 @@ def main() -> int:
         sys.stderr.write(f"worker: missing environment: {e}\n")
         return 2
 
-    # Role dispatch. Lazy import so unimplemented roles do not break
-    # the harness while commits 13+ are landing.
+    # Role dispatch. Lazy import so an ImportError in one role module
+    # does not stop the others from running.
     role = ctx.role
     role_run = None
     try:
@@ -43,8 +45,9 @@ def main() -> int:
         role_run = None
 
     if role_run is None:
-        # Roles not yet implemented run the stub. Useful for the spawner
-        # smoke test and for any role we have not built yet.
+        # Unknown role label or import failure. The stub heartbeat keeps
+        # the worker alive long enough for the orchestrator to notice and
+        # surface the misconfiguration in the run log.
         stub_heartbeat(ctx)
         return 0
 
