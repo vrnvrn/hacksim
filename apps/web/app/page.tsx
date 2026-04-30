@@ -3,11 +3,13 @@ import { Footer } from "@/components/Footer";
 import { HeroPrompt } from "@/components/HeroPrompt";
 import { HowItWorks } from "@/components/HowItWorks";
 import { HeroExamplesAside } from "@/components/HeroExamplesAside";
+import { HostedModeBanner } from "@/components/HostedModeBanner";
 
 export default function HomePage() {
   return (
     <>
       <Nav />
+      <HostedModeBanner />
       <main id="main">
         {/* Hero: above-the-fold, two columns. Left is the prompt, right is
             click-to-spin example presets. The whole thing fits inside one
