@@ -132,9 +132,15 @@ class _SimRecord:
 
 
 def _new_sim_id() -> str:
-    """Stable-prefixed id of the form sim_YYYY-MM-DD_xxxxxx."""
+    """Mint a fresh sim id with date prefix and an 8-hex random suffix.
+
+    8 hex characters give us 4 billion ids; birthday-collision risk
+    drops to roughly 1-in-65k after 65k sims (vs 1-in-4k after 4k
+    sims with the older 6-char suffix). Worst case for a single
+    submission is still negligible, but the wider space is free.
+    """
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    return f"sim_{today}_{secrets.token_hex(3)}"
+    return f"sim_{today}_{secrets.token_hex(4)}"
 
 
 def create_app(
