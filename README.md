@@ -8,6 +8,8 @@ Type one prompt. A swarm of autonomous agents on a peer-to-peer Gensyn AXL mesh 
 
 Repo: [github.com/vrnvrn/hacksim](https://github.com/vrnvrn/hacksim).
 
+![HackSim home page: prompt input, four example presets, hosted preview banner](public/screenshots/landing.png)
+
 ## What HackSim does
 
 You type a prompt like `a research hackathon on protein folding` or `an onchain agents hackathon with five sponsors and a $5k pool`. HackSim spawns a small population of agents that each play one role:
@@ -18,6 +20,10 @@ You type a prompt like `a research hackathon on protein folding` or `an onchain 
 - **Judges**, three by default. Each writes its own rubric, reads the submitted project files, and scores every project against that rubric.
 
 Every agent runs its own AXL node. The orchestrator only spawns processes and serves the UI. Every cross-agent byte goes through the Yggdrasil mesh AXL builds on top of, end to end encrypted, no central message broker.
+
+![Live page during the first few seconds of a spin-up: 15 AXL Go nodes are coming up, the NowHappening banner reads "Booting the AXL mesh", and the run log waits for the first builder.registered event](public/screenshots/bootingaxlmesh.png)
+
+![Live page after the hackathon closes: bounties, builder roster, submissions grid, judge panel, verdicts, plus the right-rail run log replaying every envelope](public/screenshots/hackathonclosed.png)
 
 ## What is Gensyn AXL
 
@@ -40,9 +46,11 @@ make hooks-install
 make demo
 ```
 
-`make demo` boots the FastAPI orchestrator and the Next.js dev server together, opens `http://localhost:3000`, and waits for you to type a prompt or click an example.
+`make demo` boots the FastAPI orchestrator and the Next.js dev server together, opens `http://localhost:3000`, and waits for you to type a prompt or click an example. Two to five minutes end to end from a clean clone (closer to two if `make build-axl` already ran).
 
 The default demo population is **1 organiser, 3 bounty designers, 8 builders, 3 judges** (15 AXL nodes peering on loopback). `make smoke` runs a scaled-down headless variant (3 designers, 4 builders, 3 judges) so the harness fits a CI minute; the wire shape is identical.
+
+If you want to deploy a fixture-mode preview to Vercel so others can browse the UX without installing, [docs/DEPLOY_VERCEL.md](docs/DEPLOY_VERCEL.md) walks the one-time setup.
 
 ### Prerequisites
 
@@ -64,20 +72,20 @@ Underneath those surfaces, AXL provides Yggdrasil routing across the mesh and en
 
 Builders also `POST` artefact metadata to the orchestrator over a separate HTTP channel. That path is filesystem registration for the showcase iframe (the orchestrator runs `git archive` on the builder's working tree and serves it under a strict CSP); it is not agent control. Phase ticks, bounties, projects, rubrics, and verdicts ride AXL.
 
-The full mapping from judging criterion to code lives in [docs/process/](docs/process/), where every commit ships a five-section process note explaining what changed, why, how to verify, which AXL surface it exercises, and what comes next.
+Every commit ships a five-section process note in [docs/process/](docs/process/) explaining what changed, why, how to verify, which AXL surface it exercises, and what comes next. Read in order, the chronology is the build.
 
-## For Gensyn judges
+## Where to look
 
-We mapped each judging criterion to the code paths and docs that satisfy it.
+A quick map of the code by concern.
 
-| Criterion                  | Where to look                                                                          |
-|----------------------------|----------------------------------------------------------------------------------------|
-| Depth of AXL integration   | `packages/skills/hacksim-network/` (skill mirrors the autoresearch-network shape), `packages/agents/_runtime.py` (broadcast, fanout with timed re-broadcasts, gossip-style reforward with sender/type/id dedupe), `tests/integration/test_two_node_send.py` (two real AXL binaries exchange one envelope cross-node) |
-| Quality of code            | Conventional Commits, every commit tested, [docs/process/](docs/process/) per commit, writing-rule pre-commit hook |
-| Clear documentation        | This README, [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [docs/AGENTS.md](docs/AGENTS.md), the per-commit process notes |
-| Working examples           | `make demo` boots a full sim; click any winner card to play the project the agents built |
+| If you want to ...                   | Look at                                                                                                   |
+|--------------------------------------|-----------------------------------------------------------------------------------------------------------|
+| see how AXL is wired                 | `packages/skills/hacksim-network/` (skill mirrors the autoresearch-network shape), `packages/agents/_runtime.py` (broadcast, fanout with timed re-broadcasts, gossip-style reforward with sender/type/id dedupe), `tests/integration/test_two_node_send.py` (two real AXL binaries exchange one envelope cross-node) |
+| follow the build chronologically     | [docs/process/](docs/process/) ships one five-section note per commit. Conventional Commits, every commit tested, writing-rule pre-commit hook in `scripts/hooks/`        |
+| read the architecture and personas   | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [docs/AGENTS.md](docs/AGENTS.md), and the `CLAUDE.md` file inside each role under `packages/agents/`                          |
+| run a sim end to end                 | `make demo` boots a full sim. Click any winner card to play the project the agents built                                                                                |
 
-Qualification gate ("communication across separate AXL nodes, not in-process"): every role runs its own AXL binary with its own ed25519 identity. `tcpdump lo0` during a run shows only HTTP to `127.0.0.1:9002` and the AXL TLS peering port. Every cross-agent message went through Yggdrasil.
+To prove every cross-agent byte rides AXL: every role runs its own AXL binary with its own ed25519 identity. `tcpdump lo0` during a run shows only HTTP to `127.0.0.1:9002` and the AXL TLS peering port. Stop the AXL processes and the simulation halts immediately.
 
 ## Architecture
 
@@ -97,17 +105,15 @@ Organiser  Designer  Builder   Judge
 Each role process owns:
 
 1. One AXL node (the Go binary), with its own ed25519 key and ports.
-2. One Python role worker running its persona (`packages/agents/<role>/role.py`). Each worker imports the `hacksim_network` skill module directly; a Claude Code session driving the same skill is a documented opt-in, not the default demo path.
+2. One Python role worker running its persona (`packages/agents/<role>/role.py`). Each worker imports the `hacksim_network` skill module directly. Driving the same skill from a Claude Code session is a documented opt-in for anyone who wants to swap the harness.
 3. The `hacksim-network` skill, wrapping the local AXL HTTP API as a small set of helpers.
 4. A `CLAUDE.md` persona file holding the role's brief.
 
 Builders also own a working tree where they write project artefacts. Judges read those artefacts directly from the filesystem to score them.
 
-## Hosted preview
+![Showcase page: gold, silver, and coral ribbon cards across the top, every project below with its score and one-line judge feedback](public/screenshots/showcase.png)
 
-The hosted preview at Vercel is the on-ramp, not the demo. The frontend deploys against fixtures so a visitor can browse the UX (hero, examples, FAQ, docs, showcase modal) without installing anything. Every page in the preview carries a banner declaring the recorded-run nature, and the live and showcase headers carry a date-stamped pill so a snapshot cannot be misread as a live mesh.
-
-The canonical demo runs on your machine. The submission package (video plus repo) is the demo; the hosted page is where curious judges land between watching the video and cloning the repo. `make demo` boots the real AXL mesh in two to five minutes from a clean clone (closer to two if `make build-axl` already ran); the architecture and message flow are in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), and the hosted `/docs` page renders a "Run it locally" panel with the same quickstart, expected timings, and a verification block. Forks who want to ship their own preview can read [docs/DEPLOY_VERCEL.md](docs/DEPLOY_VERCEL.md).
+![Project demo modal Code tab: real source the agents wrote, syntax-highlighted, file tree on the left](public/screenshots/codeexample.png)
 
 ## Status
 
