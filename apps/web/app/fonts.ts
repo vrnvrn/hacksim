@@ -14,13 +14,9 @@ export const jetbrainsMono = JetBrains_Mono({
   variable: "--font-jetbrains-mono",
 });
 
-// General Sans, the display font, served from Fontshare.
-//
-// The brief asks for next/font/local pointing at a woff2 we ship under
-// public/fonts/. The ITF file ships under the Fontshare Free License and is
-// not redistributable through this repo without the user downloading it
-// explicitly. To keep the build green out of the box we wire the local file
-// through CSS @font-face inside globals.css and gracefully fall back to
-// Inter when the file is absent. Drop public/fonts/GeneralSans-Variable.woff2
-// in place to activate it. See apps/web/public/fonts/README.txt for the
-// source URL and licence.
+// The display font is Inter Variable as well. We previously had a CSS
+// @font-face block pointing at /fonts/GeneralSans-Variable.woff2; the woff2
+// is licence-restricted from Fontshare and never shipped, so the @font-face
+// fired one 404 per styled element. To bring General Sans back, drop the
+// woff2 into apps/web/public/fonts/ and add the @font-face rule in
+// globals.css; then prepend "General Sans" to --font-display.

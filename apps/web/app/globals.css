@@ -1,15 +1,12 @@
 @import "tailwindcss";
 
-/* General Sans, served locally from Fontshare. Drop the woff2 into
-   public/fonts/ to activate it; otherwise the body font (Inter Variable)
-   takes over via the CSS variable fallback chain in @theme below. */
-@font-face {
-  font-family: "General Sans";
-  src: url("/fonts/GeneralSans-Variable.woff2") format("woff2-variations");
-  font-weight: 200 700;
-  font-style: normal;
-  font-display: swap;
-}
+/* The display font used to be General Sans served from public/fonts/. The
+   woff2 was never shipped (Fontshare licence does not let us redistribute)
+   and the unconditional @font-face fired one 404 per element that wanted
+   the family, drowning DevTools and adding load latency. We now use Inter
+   Variable (loaded through next/font/google in app/fonts.ts) for both body
+   and display; if anyone wants General Sans back, drop the woff2 into
+   public/fonts/ and add the @font-face block here. */
 
 @theme {
   --color-ink: #000000;
@@ -32,7 +29,7 @@
   --color-silver: #C0C0C0;
 
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-display: "General Sans", var(--font-inter), sans-serif;
+  --font-display: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
 }
 

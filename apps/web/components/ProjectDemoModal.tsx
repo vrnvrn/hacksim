@@ -62,6 +62,7 @@ export function ProjectDemoModal({
   const [selectedPath, setSelectedPath] = useState<string>("index.html");
   const [content, setContent] = useState<string>("");
   const [loadingContent, setLoadingContent] = useState(false);
+  const [contentError, setContentError] = useState<string | null>(null);
 
   // Fetch the file tree the first time the modal opens.
   useEffect(() => {
@@ -95,16 +96,23 @@ export function ProjectDemoModal({
     const file = files.files.find((f) => f.path === selectedPath);
     if (!file || file.kind !== "text") {
       setContent("");
+      setContentError(null);
       return;
     }
     let alive = true;
     setLoadingContent(true);
+    setContentError(null);
     (async () => {
       try {
         const text = await getProjectFileContents(simId, projectId, selectedPath);
         if (alive) setContent(text);
       } catch {
-        if (alive) setContent("");
+        if (alive) {
+          setContent("");
+          setContentError(
+            "Could not load file contents (orchestrator down, 404, or Next dev proxy missing .../files/<path>).",
+          );
+        }
       } finally {
         if (alive) setLoadingContent(false);
       }
@@ -210,10 +218,20 @@ export function ProjectDemoModal({
               </div>
               <div className="min-h-0 flex flex-col">
                 {(files?.files.find((f) => f.path === selectedPath)) ? (
-                  <SourceView
-                    file={files!.files.find((f) => f.path === selectedPath)!}
-                    content={loadingContent ? "Loading..." : content}
-                  />
+                  <>
+                    {contentError && !loadingContent ? (
+                      <div
+                        role="alert"
+                        className="text-xs px-4 py-2 border-b border-coral bg-warning-soft text-ink shrink-0"
+                      >
+                        {contentError}
+                      </div>
+                    ) : null}
+                    <SourceView
+                      file={files!.files.find((f) => f.path === selectedPath)!}
+                      content={loadingContent ? "Loading..." : content}
+                    />
+                  </>
                 ) : (
                   <div className="p-6 text-sm text-muted">
                     Pick a file from the tree.
