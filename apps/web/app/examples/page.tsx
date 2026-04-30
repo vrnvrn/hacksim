@@ -11,9 +11,9 @@ export default function ExamplesPage() {
           Example runs
         </h1>
         <p className="text-xl text-body mt-6 max-w-3xl leading-snug">
-          Pre-recorded simulations. Each run is reproducible with the prompt
-          shown on the card. Click into any sim to watch the live page or
-          jump to the showcase.
+          Click any card to spin up a fresh sim with that prompt. Each run
+          is non-deterministic, so the projects you get will not match the
+          tile copy verbatim.
         </p>
         <div className="mt-12">
           <HeroExamples />

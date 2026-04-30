@@ -1,11 +1,14 @@
 import Link from "next/link";
 import type { Project } from "@/lib/types";
-import { ProjectTile } from "./ProjectTile";
+import { ExampleCard } from "./ExampleCard";
 
-// Four canned example sims, all linked to the mocked sim id. Server-rendered.
-const EXAMPLES: Array<{ project: Project; href: string }> = [
+// Four example sims. Each card POSTs its prompt to /api/sim on click and
+// redirects to the freshly-spun sim id. The Project payload here is just
+// preview copy for the tile; the actual projects are produced by the run.
+const EXAMPLES: Array<{ project: Project; prompt: string }> = [
   {
-    href: "/sim/sim_2026-04-28_a1b2c3#submissions",
+    prompt:
+      "a developer tooling hackathon for visualisations of agent activity and team formation, four sponsors and a $4k pool",
     project: {
       id: "proj_d3vis",
       team_id: "team_alpha",
@@ -23,7 +26,8 @@ const EXAMPLES: Array<{ project: Project; href: string }> = [
     },
   },
   {
-    href: "/sim/sim_2026-04-28_a1b2c3#submissions",
+    prompt:
+      "a peer-to-peer demo hackathon for three.js scenes that visualise live mesh traffic, three sponsors",
     project: {
       id: "proj_threejs",
       team_id: "team_beta",
@@ -41,7 +45,8 @@ const EXAMPLES: Array<{ project: Project; href: string }> = [
     },
   },
   {
-    href: "/sim/sim_2026-04-28_a1b2c3#submissions",
+    prompt:
+      "an onchain games hackathon focused on EIP-2612 permits, five sponsors and a $5k pool",
     project: {
       id: "proj_game",
       team_id: "team_gamma",
@@ -59,7 +64,8 @@ const EXAMPLES: Array<{ project: Project; href: string }> = [
     },
   },
   {
-    href: "/sim/sim_2026-04-28_a1b2c3#submissions",
+    prompt:
+      "an AI evals hackathon for tools to compare and explain judge rubrics, three sponsors",
     project: {
       id: "proj_rubric",
       team_id: "team_delta",
@@ -98,15 +104,13 @@ export function HeroExamples() {
           See all
         </Link>
       </div>
+      <p className="text-sm text-muted mt-3 max-w-2xl">
+        Click any card to spin up a fresh sim with that prompt. The titles
+        and taglines are illustrative; every run produces its own projects.
+      </p>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-12 mt-10">
-        {EXAMPLES.map(({ project, href }) => (
-          <Link
-            key={project.id}
-            href={href}
-            className="block focus:outline-none focus:ring-2 focus:ring-accent rounded-3xl"
-          >
-            <ProjectTile project={project} showCta={false} />
-          </Link>
+        {EXAMPLES.map(({ project, prompt }) => (
+          <ExampleCard key={project.id} project={project} prompt={prompt} />
         ))}
       </div>
     </section>

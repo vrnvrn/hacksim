@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import type { SimConfig } from "@/lib/types";
 import { cn } from "@/lib/cn";
 import { getAnthropicKey, isLocalhostOrigin } from "@/lib/anthropic-key";
@@ -44,8 +44,10 @@ const DEFAULT_CONFIG: SimConfig = {
 
 export function HeroExamplesAside() {
   const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
 
   function spinUp(prompt: string) {
+    setError(null);
     startTransition(async () => {
       try {
         const apiKey = getAnthropicKey();
@@ -65,9 +67,7 @@ export function HeroExamplesAside() {
         const json = (await res.json()) as { id: string };
         window.location.href = `/sim/${json.id}`;
       } catch {
-        // Fall back to the canned mock sim so the click still does something
-        // visible when the orchestrator is unreachable.
-        window.location.href = "/sim/sim_2026-04-28_a1b2c3";
+        setError("Could not reach the orchestrator. Run `make demo` and retry.");
       }
     });
   }
@@ -129,6 +129,11 @@ export function HeroExamplesAside() {
           </li>
         ))}
       </ul>
+      {error ? (
+        <p className="mt-3 text-xs text-coral" role="alert">
+          {error}
+        </p>
+      ) : null}
     </aside>
   );
 }
