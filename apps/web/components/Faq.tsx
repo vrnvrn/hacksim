@@ -18,11 +18,16 @@ const ITEMS: Faq[] = [
     a: (
       <>
         <P>
-          Anthropic <Code>claude-haiku-4-5-20251001</Code> via the official
-          Python SDK. Optional. Triggered when{" "}
-          <Code>ANTHROPIC_API_KEY</Code> is set in the shell that runs{" "}
-          <Code>make demo</Code>. Four call sites across the three
-          decision-making roles:
+          HackSim has an Anthropic SDK call site per role decision that
+          fires when an API key is set. Without one, the deterministic
+          stub runs and produces real, distinct output. The default
+          demo path makes zero LLM calls.
+        </P>
+        <P>
+          With <Code>ANTHROPIC_API_KEY</Code> exported in the shell that
+          runs <Code>make demo</Code>, the SDK calls{" "}
+          <Code>claude-haiku-4-5-20251001</Code> at four sites across
+          three decision-making roles:
         </P>
         <Ul>
           <li>
@@ -43,13 +48,11 @@ const ITEMS: Faq[] = [
           </li>
         </Ul>
         <P>
-          Without a key, every call falls back to a deterministic stub keyed
-          off the agent&rsquo;s peer id and the prompt hash. The stubs still
-          produce real output (a working interactive canvas, plausible
-          bounty text, sensible scores), just template-authored instead of
-          LLM-authored. That fallback is what lets the demo run for a
-          reviewer who has not set a key. We do not use Claude Code in the
-          running demo.
+          Without a key, the stub at each call site produces a working
+          interactive canvas, plausible bounty text, and sensible scores
+          keyed off the agent&rsquo;s peer id and the prompt hash. That
+          fallback is what lets the demo run for someone who has not set
+          a key. We do not use Claude Code in the running demo.
         </P>
       </>
     ),
@@ -307,24 +310,24 @@ export function Faq() {
         <FaqExpandAll />
       </div>
       <p className="text-body mt-3 max-w-3xl leading-relaxed">
-        Answers a Gensyn judge, an ETHGlobal reviewer, or a curious user is
-        likely to want before reading any code.
+        Answers anyone reading the repo cold is likely to want before
+        digging into the code.
       </p>
       <div id="faq-list" className="mt-8 divide-y divide-border">
         {ITEMS.map((item) => (
           <details key={item.q} className="group py-4">
-            <summary className="cursor-pointer list-none flex items-baseline justify-between gap-4 hover:text-ink transition">
-              <span className="font-display text-lg font-semibold text-ink">
-                {item.q}
-              </span>
+            <summary className="cursor-pointer list-none flex items-baseline gap-3 hover:text-ink transition">
               <span
                 aria-hidden="true"
                 className="font-mono text-sm text-muted shrink-0 group-open:rotate-90 transition-transform"
               >
                 &gt;
               </span>
+              <span className="font-display text-lg font-semibold text-ink">
+                {item.q}
+              </span>
             </summary>
-            <div className="mt-3 space-y-3 text-body leading-relaxed max-w-3xl">
+            <div className="mt-3 space-y-3 text-body leading-relaxed max-w-3xl pl-6">
               {item.a}
             </div>
           </details>

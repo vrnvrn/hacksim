@@ -106,7 +106,11 @@ export function RunItLocally() {
       <pre className="mt-3 rounded-xl bg-navy-950 text-canvas font-mono text-xs px-4 py-3 overflow-x-auto leading-relaxed">
         <code>{VERIFY}</code>
       </pre>
-      <TcpdumpRecording />
+      {/* The asciinema recording slot is intentionally hidden until a
+          real tcpdump-demo.cast lands in apps/web/public/. Uncomment
+          before submission if we record one. The component definition
+          stays in this file so re-enabling is a one-line change. */}
+      {/* <TcpdumpRecording /> */}
 
       <p className="text-xs text-muted mt-6 leading-relaxed">
         The chronological build is readable in fifteen minutes under{" "}
