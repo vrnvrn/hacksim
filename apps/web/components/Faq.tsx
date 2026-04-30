@@ -20,7 +20,8 @@ const ITEMS: Faq[] = [
           Anthropic <Code>claude-haiku-4-5-20251001</Code> via the official
           Python SDK. Optional. Triggered when{" "}
           <Code>ANTHROPIC_API_KEY</Code> is set in the shell that runs{" "}
-          <Code>make demo</Code>. Four call sites, one per role decision:
+          <Code>make demo</Code>. Four call sites across the three
+          decision-making roles:
         </P>
         <Ul>
           <li>
@@ -28,10 +29,12 @@ const ITEMS: Faq[] = [
             <Code>packages/agents/bounty_designer/decisions.py</Code>).
           </li>
           <li>
-            Builders pick the bounty that fits their skills, then write the
-            project HTML (
-            <Code>packages/agents/builder/decisions.py</Code> and{" "}
-            <Code>builder/build.py</Code>).
+            Builders pick the bounty that fits their skills (
+            <Code>packages/agents/builder/decisions.py</Code>).
+          </li>
+          <li>
+            Builders write the project HTML (
+            <Code>packages/agents/builder/build.py</Code>).
           </li>
           <li>
             Judges score every submission with feedback (
