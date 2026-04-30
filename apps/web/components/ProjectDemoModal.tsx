@@ -113,7 +113,7 @@ export function ProjectDemoModal({
         if (alive) {
           setContent("");
           setContentError(
-            "Could not load file contents (orchestrator down, 404, or Next dev proxy missing .../files/<path>).",
+            "Could not load this file. The orchestrator may have stopped; check the terminal where you ran `make demo` and try reopening the project.",
           );
         }
       } finally {
@@ -142,7 +142,9 @@ export function ProjectDemoModal({
       } catch {
         if (alive) {
           setReadmeContent("");
-          setReadmeError("Could not load README.md.");
+          setReadmeError(
+            "Could not load README.md. The orchestrator may have stopped; check the terminal and reopen the project.",
+          );
         }
       } finally {
         if (alive) setLoadingReadme(false);
