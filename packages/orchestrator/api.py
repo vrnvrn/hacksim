@@ -257,11 +257,12 @@ def create_app(
                 {
                     "sim_id": sim_id,
                     "prompt": req.prompt,
-                    # `req.config` is a Pydantic SimConfig; model_dump excludes
-                    # the SecretStr key field thanks to `exclude=True`. Even
-                    # so we are explicit so a future field rename never
-                    # accidentally leaks the key.
-                    "config": req.config.model_dump(exclude={"anthropic_api_key"}),
+                    # `req.config` is a Pydantic SimConfig with no secret
+                    # fields. The Anthropic key lives on CreateSimRequest
+                    # itself (with Field(exclude=True) plus SecretStr) and
+                    # never reaches this dict because we serialise
+                    # req.config in isolation, not the full request.
+                    "config": req.config.model_dump(),
                     "created_at": controller.snapshot["created_at"],
                     "llm": "anthropic" if user_key else "stub",
                 },
