@@ -107,7 +107,7 @@ Builders also own a working tree where they write project artefacts. Judges read
 
 The hosted preview at Vercel is the on-ramp, not the demo. The frontend deploys against fixtures so a visitor can browse the UX (hero, examples, FAQ, docs, showcase modal) without installing anything. Every page in the preview carries a banner declaring the recorded-run nature, and the live and showcase headers carry a date-stamped pill so a snapshot cannot be misread as a live mesh.
 
-The canonical demo runs on your machine. The submission package (video plus repo) is the demo; the hosted page is where curious judges land between watching the video and cloning the repo. `make demo` boots the real AXL mesh in five minutes; the architecture and message flow are in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), and the hosted `/docs` page renders a "Run it locally" panel with the same quickstart, expected timings, and a verification block. Forks who want to ship their own preview can read [docs/DEPLOY_VERCEL.md](docs/DEPLOY_VERCEL.md).
+The canonical demo runs on your machine. The submission package (video plus repo) is the demo; the hosted page is where curious judges land between watching the video and cloning the repo. `make demo` boots the real AXL mesh in two to five minutes from a clean clone (closer to two if `make build-axl` already ran); the architecture and message flow are in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), and the hosted `/docs` page renders a "Run it locally" panel with the same quickstart, expected timings, and a verification block. Forks who want to ship their own preview can read [docs/DEPLOY_VERCEL.md](docs/DEPLOY_VERCEL.md).
 
 ## Status
 

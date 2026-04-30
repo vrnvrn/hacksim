@@ -48,7 +48,7 @@ export function RunItLocally() {
         id="run-it-locally-heading"
         className="font-display text-2xl lg:text-3xl font-semibold text-ink mt-2"
       >
-        Five minutes from clone to a live AXL mesh
+        Two to five minutes from clone to a live AXL mesh
       </h2>
       <p className="text-body mt-3 max-w-3xl leading-relaxed">
         The hosted preview replays a recorded run. The canonical demo runs
