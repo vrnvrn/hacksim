@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Pause, Play } from "lucide-react";
+import { ChevronDown, ChevronUp, Pause, Play } from "lucide-react";
 import { useSse } from "@/lib/use-sse";
 import type { Envelope } from "@/lib/types";
 import { cn } from "@/lib/cn";
@@ -49,12 +49,25 @@ function summarise(env: Envelope): string {
 
 // Right-rail terminal pane. Listens to the SSE stream, appends one line per
 // envelope, auto-scrolls unless the user has scrolled up. A pause toggle
-// freezes the view without dropping events.
+// freezes the view without dropping events. On mobile (sm and below) the
+// pane collapses by default to a single header row so the SubmissionsGrid
+// is reachable without scrolling past 80vh of run log.
 export function RunLog({ simId }: { simId: string }) {
   const [lines, setLines] = useState<Envelope[]>([]);
   const [paused, setPaused] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const liveRef = useRef<HTMLDivElement | null>(null);
+
+  // Collapse by default on narrow viewports. Reads window.matchMedia once
+  // on mount, no resize listener (the user can collapse / expand
+  // manually after that).
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (window.matchMedia("(max-width: 1023px)").matches) {
+      setCollapsed(true);
+    }
+  }, []);
 
   const onEvent = useCallback((env: Envelope) => {
     setLines((prev) => {
@@ -85,32 +98,60 @@ export function RunLog({ simId }: { simId: string }) {
 
   return (
     <aside
-      className="rounded-3xl bg-navy-950 text-canvas font-mono text-xs h-[80vh] flex flex-col overflow-hidden"
+      className={cn(
+        "rounded-3xl bg-navy-950 text-canvas font-mono text-xs flex flex-col overflow-hidden",
+        collapsed ? "h-auto" : "h-[80vh]",
+      )}
       aria-label="Run log"
     >
       <header className="flex items-center justify-between px-4 py-2 border-b border-white/10">
-        <span className="text-[11px] uppercase tracking-wide text-canvas/70">
+        <span className="text-[11px] uppercase tracking-wide text-canvas/70 flex items-center gap-2">
           Run log
           {HOSTED_REPLAY
             ? " · replay"
             : connected
               ? " · live"
               : " · offline"}
+          {collapsed && lines.length > 0 ? (
+            <span className="text-canvas/50">
+              ({lines.length} event{lines.length === 1 ? "" : "s"})
+            </span>
+          ) : null}
         </span>
-        <button
-          type="button"
-          onClick={() => setPaused((v) => !v)}
-          className="inline-flex items-center gap-1 text-[11px] text-canvas/80 hover:text-canvas transition"
-          aria-label={paused ? "Resume run log auto-scroll" : "Pause run log auto-scroll"}
-        >
-          {paused ? (
-            <Play className="h-3 w-3" aria-hidden />
-          ) : (
-            <Pause className="h-3 w-3" aria-hidden />
-          )}
-          {paused ? "Resume" : "Pause"}
-        </button>
+        <span className="flex items-center gap-3">
+          {!collapsed ? (
+            <button
+              type="button"
+              onClick={() => setPaused((v) => !v)}
+              className="inline-flex items-center gap-1 text-[11px] text-canvas/80 hover:text-canvas transition"
+              aria-label={paused ? "Resume run log auto-scroll" : "Pause run log auto-scroll"}
+            >
+              {paused ? (
+                <Play className="h-3 w-3" aria-hidden />
+              ) : (
+                <Pause className="h-3 w-3" aria-hidden />
+              )}
+              {paused ? "Resume" : "Pause"}
+            </button>
+          ) : null}
+          <button
+            type="button"
+            onClick={() => setCollapsed((v) => !v)}
+            className="inline-flex items-center gap-1 text-[11px] text-canvas/80 hover:text-canvas transition"
+            aria-label={collapsed ? "Expand run log" : "Collapse run log"}
+            aria-expanded={!collapsed}
+          >
+            {collapsed ? (
+              <ChevronDown className="h-3 w-3" aria-hidden />
+            ) : (
+              <ChevronUp className="h-3 w-3" aria-hidden />
+            )}
+            {collapsed ? "Expand" : "Collapse"}
+          </button>
+        </span>
       </header>
+      {collapsed ? null : (<>
+
       <div
         ref={containerRef}
         className={cn(
@@ -131,6 +172,7 @@ export function RunLog({ simId }: { simId: string }) {
           ? `${lastLine.type} from ${shortPeer(lastLine.from)}`
           : ""}
       </div>
+      </>)}
     </aside>
   );
 }
