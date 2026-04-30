@@ -53,7 +53,7 @@ exports[`HowItWorks > matches the default snapshot 1`] = `
       <p
         class="text-body mt-3 leading-relaxed"
       >
-        Live feed of every message between agents on a real AXL mesh. Click any winner and play with what they built.
+        Watch agents talk peer-to-peer over an AXL mesh and click any winner to play with what they built.
       </p>
     </article>
   </div>

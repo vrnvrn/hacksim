@@ -12,7 +12,7 @@ const CARDS = [
   },
   {
     title: "You watch and play",
-    body: "Live feed of every message between agents on a real AXL mesh. Click any winner and play with what they built.",
+    body: "Watch agents talk peer-to-peer over an AXL mesh and click any winner to play with what they built.",
   },
 ];
 
