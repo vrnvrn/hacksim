@@ -70,6 +70,12 @@ export default async function SimPage({
       <main className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-x-8 max-w-7xl mx-auto px-6 lg:px-8 pt-10 pb-24">
         <div className="min-w-0">
           <header className="mb-12 space-y-5">
+            <Link
+              href="/"
+              className="inline-flex items-center gap-1 text-xs font-mono uppercase tracking-[0.16em] text-muted hover:text-ink transition"
+            >
+              &larr; back to home
+            </Link>
             <p className="text-xl text-body italic max-w-2xl leading-snug">
               &ldquo;{snapshot.prompt}&rdquo;
             </p>
