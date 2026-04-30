@@ -39,7 +39,7 @@ export function RunItLocally() {
     <section
       id="run-it-locally"
       aria-labelledby="run-it-locally-heading"
-      className="mt-12 rounded-3xl border border-accent/40 bg-accent/5 p-6 lg:p-8"
+      className="mt-12 scroll-mt-24 rounded-3xl border border-accent/40 bg-accent/5 p-6 lg:p-8"
     >
       <p className="text-xs font-mono uppercase tracking-[0.18em] text-accent">
         [ run it locally ]
