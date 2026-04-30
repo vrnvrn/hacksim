@@ -267,7 +267,9 @@ def create_app(
                 },
             )
             # Kick off start() in the background so the HTTP response
-            # returns the sim id quickly. Spawning 11 nodes can take ~10s.
+            # returns the sim id quickly. The default population spawns
+            # 15 nodes (1 organiser + 3 designers + 8 builders + 3 judges)
+            # and that takes ~10s on a clean loopback.
             asyncio.create_task(_safe_start(controller, app))
             return CreateSimResponse(id=sim_id, stream_url=f"/api/sim/{sim_id}/stream")
 
