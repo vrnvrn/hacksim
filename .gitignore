@@ -39,6 +39,8 @@ third_party/axl/build/
 .env.*
 !.env.example
 !.env.local.example
+!.env.production
+!.env.production.example
 
 # Logs
 *.log
