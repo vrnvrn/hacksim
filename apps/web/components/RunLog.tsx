@@ -7,6 +7,9 @@ import type { Envelope } from "@/lib/types";
 import { cn } from "@/lib/cn";
 
 const MAX_LINES = 500;
+const HOSTED_REPLAY =
+  process.env.NEXT_PUBLIC_HOSTED_PREVIEW === "true" &&
+  process.env.NEXT_PUBLIC_USE_MOCKS === "true";
 
 function shortPeer(peer: string | undefined): string {
   if (!peer) return "anon";
@@ -87,7 +90,12 @@ export function RunLog({ simId }: { simId: string }) {
     >
       <header className="flex items-center justify-between px-4 py-2 border-b border-white/10">
         <span className="text-[11px] uppercase tracking-wide text-canvas/70">
-          Run log {connected ? "· live" : "· offline"}
+          Run log
+          {HOSTED_REPLAY
+            ? " · replay"
+            : connected
+              ? " · live"
+              : " · offline"}
         </span>
         <button
           type="button"
