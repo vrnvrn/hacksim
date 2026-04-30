@@ -25,6 +25,7 @@ const filesPayload = {
   entry_path: "index.html",
   github_url: null,
   files: [
+    { path: "README.md", size_bytes: 50, kind: "text" },
     { path: "index.html", size_bytes: 100, kind: "text" },
     { path: "app.js", size_bytes: 200, kind: "text" },
   ],
@@ -53,7 +54,7 @@ afterEach(() => {
 });
 
 describe("ProjectDemoModal", () => {
-  it("renders the title and three tabs when open", async () => {
+  it("renders the title and tabs when open", async () => {
     render(
       <ProjectDemoModal
         simId="sim_x"
@@ -66,6 +67,7 @@ describe("ProjectDemoModal", () => {
     await waitFor(() =>
       expect(screen.getByRole("tab", { name: "Demo" })).toBeInTheDocument(),
     );
+    expect(screen.getByRole("tab", { name: "README" })).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: "Code" })).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: "Verdict" })).toBeInTheDocument();
   });

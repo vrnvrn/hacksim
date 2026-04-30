@@ -63,6 +63,9 @@ export function ProjectDemoModal({
   const [content, setContent] = useState<string>("");
   const [loadingContent, setLoadingContent] = useState(false);
   const [contentError, setContentError] = useState<string | null>(null);
+  const [readmeContent, setReadmeContent] = useState<string>("");
+  const [loadingReadme, setLoadingReadme] = useState(false);
+  const [readmeError, setReadmeError] = useState<string | null>(null);
 
   // Fetch the file tree the first time the modal opens.
   useEffect(() => {
@@ -121,6 +124,34 @@ export function ProjectDemoModal({
       alive = false;
     };
   }, [open, files, selectedPath, simId, projectId]);
+
+  const readmeFile =
+    files?.files.find((f) => f.path.toLowerCase() === "readme.md") ?? null;
+
+  // README is rendered separately from the Demo iframe so users can tell
+  // whether the demo actually works (and so a project can ship both).
+  useEffect(() => {
+    if (!open || !files || !readmeFile || readmeFile.kind !== "text") return;
+    let alive = true;
+    setLoadingReadme(true);
+    setReadmeError(null);
+    (async () => {
+      try {
+        const text = await getProjectFileContents(simId, projectId, readmeFile.path);
+        if (alive) setReadmeContent(text);
+      } catch {
+        if (alive) {
+          setReadmeContent("");
+          setReadmeError("Could not load README.md.");
+        }
+      } finally {
+        if (alive) setLoadingReadme(false);
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [open, files, readmeFile?.path, readmeFile?.kind, simId, projectId]);
 
   const teamMembers = builders
     .filter(
@@ -182,6 +213,7 @@ export function ProjectDemoModal({
               aria-label="Project tabs"
             >
               <TabTrigger value="demo">Demo</TabTrigger>
+              {readmeFile ? <TabTrigger value="readme">README</TabTrigger> : null}
               <TabTrigger value="code">Code</TabTrigger>
               <TabTrigger value="verdict">Verdict</TabTrigger>
             </Tabs.List>
@@ -203,6 +235,27 @@ export function ProjectDemoModal({
                 className="w-full flex-1 bg-canvas"
                 title={`Demo of ${project?.title ?? "project"}`}
               />
+            </Tabs.Content>
+
+            <Tabs.Content value="readme" className="flex-1 min-h-0 flex flex-col">
+              {!readmeFile ? (
+                <div className="p-6 text-sm text-muted">No README.md found.</div>
+              ) : (
+                <>
+                  {readmeError && !loadingReadme ? (
+                    <div
+                      role="alert"
+                      className="text-xs px-4 py-2 border-b border-coral bg-warning-soft text-ink shrink-0"
+                    >
+                      {readmeError}
+                    </div>
+                  ) : null}
+                  <SourceView
+                    file={readmeFile}
+                    content={loadingReadme ? "Loading..." : readmeContent}
+                  />
+                </>
+              )}
             </Tabs.Content>
 
             <Tabs.Content
