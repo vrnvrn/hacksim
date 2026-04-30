@@ -227,8 +227,8 @@ export function ProjectDemoModal({
               >
                 <Info className="h-3.5 w-3.5" aria-hidden />
                 <span>
-                  Sandboxed agent-generated code. Cannot access your data,
-                  cannot make network calls.
+                  Sandboxed agent-generated code: scripts and styles only.
+                  No network, no forms, no cookies, no top-level navigation.
                 </span>
               </div>
               <iframe
