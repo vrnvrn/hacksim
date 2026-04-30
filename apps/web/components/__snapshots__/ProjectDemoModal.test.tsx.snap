@@ -24,17 +24,17 @@ exports[`ProjectDemoModal > matches the default snapshot when open 1`] = `
     style="pointer-events: auto;"
   />
   <div
-    aria-labelledby="radix-_r_p_"
+    aria-labelledby="radix-_r_o_"
     class="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 max-w-7xl w-[90vw] h-[90vh] rounded-3xl bg-surface p-0 overflow-hidden shadow-2xl flex flex-col focus:outline-none"
     data-state="open"
-    id="radix-_r_o_"
+    id="radix-_r_n_"
     role="dialog"
     style="pointer-events: auto;"
     tabindex="-1"
   >
     <h2
       class="visually-hidden"
-      id="radix-_r_p_"
+      id="radix-_r_o_"
     >
       Demo of Permit Two-Tap
     </h2>
@@ -97,13 +97,13 @@ exports[`ProjectDemoModal > matches the default snapshot when open 1`] = `
         tabindex="0"
       >
         <button
-          aria-controls="radix-_r_r_-content-demo"
+          aria-controls="radix-_r_q_-content-demo"
           aria-selected="true"
           class="px-4 py-3 text-sm font-medium text-body data-[state=active]:text-ink data-[state=active]:border-b-2 data-[state=active]:border-accent transition"
           data-orientation="horizontal"
           data-radix-collection-item=""
           data-state="active"
-          id="radix-_r_r_-trigger-demo"
+          id="radix-_r_q_-trigger-demo"
           role="tab"
           tabindex="-1"
           type="button"
@@ -111,13 +111,13 @@ exports[`ProjectDemoModal > matches the default snapshot when open 1`] = `
           Demo
         </button>
         <button
-          aria-controls="radix-_r_r_-content-readme"
+          aria-controls="radix-_r_q_-content-readme"
           aria-selected="false"
           class="px-4 py-3 text-sm font-medium text-body data-[state=active]:text-ink data-[state=active]:border-b-2 data-[state=active]:border-accent transition"
           data-orientation="horizontal"
           data-radix-collection-item=""
           data-state="inactive"
-          id="radix-_r_r_-trigger-readme"
+          id="radix-_r_q_-trigger-readme"
           role="tab"
           tabindex="-1"
           type="button"
@@ -125,13 +125,13 @@ exports[`ProjectDemoModal > matches the default snapshot when open 1`] = `
           README
         </button>
         <button
-          aria-controls="radix-_r_r_-content-code"
+          aria-controls="radix-_r_q_-content-code"
           aria-selected="false"
           class="px-4 py-3 text-sm font-medium text-body data-[state=active]:text-ink data-[state=active]:border-b-2 data-[state=active]:border-accent transition"
           data-orientation="horizontal"
           data-radix-collection-item=""
           data-state="inactive"
-          id="radix-_r_r_-trigger-code"
+          id="radix-_r_q_-trigger-code"
           role="tab"
           tabindex="-1"
           type="button"
@@ -139,13 +139,13 @@ exports[`ProjectDemoModal > matches the default snapshot when open 1`] = `
           Code
         </button>
         <button
-          aria-controls="radix-_r_r_-content-verdict"
+          aria-controls="radix-_r_q_-content-verdict"
           aria-selected="false"
           class="px-4 py-3 text-sm font-medium text-body data-[state=active]:text-ink data-[state=active]:border-b-2 data-[state=active]:border-accent transition"
           data-orientation="horizontal"
           data-radix-collection-item=""
           data-state="inactive"
-          id="radix-_r_r_-trigger-verdict"
+          id="radix-_r_q_-trigger-verdict"
           role="tab"
           tabindex="-1"
           type="button"
@@ -154,11 +154,11 @@ exports[`ProjectDemoModal > matches the default snapshot when open 1`] = `
         </button>
       </div>
       <div
-        aria-labelledby="radix-_r_r_-trigger-demo"
+        aria-labelledby="radix-_r_q_-trigger-demo"
         class="flex-1 min-h-0 flex flex-col"
         data-orientation="horizontal"
         data-state="active"
-        id="radix-_r_r_-content-demo"
+        id="radix-_r_q_-content-demo"
         role="tabpanel"
         style="animation-duration: 0s;"
         tabindex="0"
@@ -204,32 +204,32 @@ exports[`ProjectDemoModal > matches the default snapshot when open 1`] = `
         />
       </div>
       <div
-        aria-labelledby="radix-_r_r_-trigger-readme"
+        aria-labelledby="radix-_r_q_-trigger-readme"
         class="flex-1 min-h-0 flex flex-col"
         data-orientation="horizontal"
         data-state="inactive"
         hidden=""
-        id="radix-_r_r_-content-readme"
+        id="radix-_r_q_-content-readme"
         role="tabpanel"
         tabindex="0"
       />
       <div
-        aria-labelledby="radix-_r_r_-trigger-code"
+        aria-labelledby="radix-_r_q_-trigger-code"
         class="flex-1 min-h-0 grid grid-cols-[240px_1fr]"
         data-orientation="horizontal"
         data-state="inactive"
         hidden=""
-        id="radix-_r_r_-content-code"
+        id="radix-_r_q_-content-code"
         role="tabpanel"
         tabindex="0"
       />
       <div
-        aria-labelledby="radix-_r_r_-trigger-verdict"
+        aria-labelledby="radix-_r_q_-trigger-verdict"
         class="flex-1 min-h-0 overflow-y-auto"
         data-orientation="horizontal"
         data-state="inactive"
         hidden=""
-        id="radix-_r_r_-content-verdict"
+        id="radix-_r_q_-content-verdict"
         role="tabpanel"
         tabindex="0"
       />

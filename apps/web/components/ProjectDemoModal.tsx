@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import * as Tabs from "@radix-ui/react-tabs";
 import { Info, X } from "lucide-react";
@@ -155,6 +155,30 @@ export function ProjectDemoModal({
     };
   }, [open, files, readmeFile?.path, readmeFile?.kind, simId, projectId]);
 
+  // Keyboard navigation: bracket keys cycle tabs left/right while the
+  // modal is open. Lets a power user (or a judge with a trackpad they
+  // do not love) move through Demo / Code / README / Verdict without
+  // clicking each tab trigger.
+  const [activeTab, setActiveTab] = useState<string>("demo");
+  useEffect(() => {
+    if (!open) return;
+    const tabs = ["demo", ...(readmeFile ? ["readme"] : []), "code", "verdict"];
+    function onKey(e: KeyboardEvent) {
+      const target = e.target as HTMLElement | null;
+      if (target?.tagName === "INPUT" || target?.tagName === "TEXTAREA") return;
+      if (e.key !== "[" && e.key !== "]") return;
+      e.preventDefault();
+      const idx = tabs.indexOf(activeTab);
+      const next =
+        e.key === "]"
+          ? tabs[(idx + 1) % tabs.length]
+          : tabs[(idx - 1 + tabs.length) % tabs.length];
+      setActiveTab(next);
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, activeTab, readmeFile]);
+
   const teamMembers = builders
     .filter(
       (b) =>
@@ -207,7 +231,8 @@ export function ProjectDemoModal({
           </header>
 
           <Tabs.Root
-            defaultValue="demo"
+            value={activeTab}
+            onValueChange={setActiveTab}
             className="flex-1 flex flex-col min-h-0"
           >
             <Tabs.List
