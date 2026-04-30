@@ -41,34 +41,28 @@ const PACE_PRESETS: Array<{
 const PLACEHOLDER =
   "an onchain agents hackathon with five sponsors and a $5k pool";
 
+const EXAMPLE_PROMPT = PLACEHOLDER;
+
 export function HeroPrompt({
   onSubmit,
-  exampleHref = "/examples",
 }: {
   onSubmit?: (prompt: string, cfg: SimConfig) => void;
-  exampleHref?: string;
 }) {
   const [prompt, setPrompt] = useState("");
   const [config, setConfig] = useState<SimConfig>(DEFAULT_CONFIG);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
-  function handleSubmit(e?: FormEvent) {
-    e?.preventDefault();
-    const trimmed = prompt.trim();
-    if (!trimmed) {
-      setError("Add a prompt to spin up a sim.");
-      return;
-    }
+  function spinUp(promptText: string) {
     setError(null);
     if (onSubmit) {
-      onSubmit(trimmed, config);
+      onSubmit(promptText, config);
       return;
     }
     startTransition(async () => {
       try {
         const apiKey = getAnthropicKey();
-        const body: Record<string, unknown> = { prompt: trimmed, config };
+        const body: Record<string, unknown> = { prompt: promptText, config };
         if (apiKey && isLocalhostOrigin()) {
           body.anthropic_api_key = apiKey;
         }
@@ -81,9 +75,19 @@ export function HeroPrompt({
         const json = (await res.json()) as { id: string };
         window.location.href = `/sim/${json.id}`;
       } catch {
-        setError("Could not reach the orchestrator. Mock mode keeps the UI working; flip NEXT_PUBLIC_USE_MOCKS=true.");
+        setError("Could not reach the orchestrator. Run `make demo` and retry.");
       }
     });
+  }
+
+  function handleSubmit(e?: FormEvent) {
+    e?.preventDefault();
+    const trimmed = prompt.trim();
+    if (!trimmed) {
+      setError("Add a prompt to spin up a sim.");
+      return;
+    }
+    spinUp(trimmed);
   }
 
   function handleKey(e: KeyboardEvent<HTMLTextAreaElement>) {
@@ -136,12 +140,14 @@ export function HeroPrompt({
         {isPending ? (
           <span className="text-xs text-muted">about 10 seconds</span>
         ) : null}
-        <a
-          href={exampleHref}
-          className="rounded-full border-2 border-ink bg-surface text-ink px-5 py-2.5 text-sm font-semibold hover:bg-ink hover:text-surface transition"
+        <button
+          type="button"
+          disabled={isPending}
+          onClick={() => spinUp(EXAMPLE_PROMPT)}
+          className="rounded-full border-2 border-ink bg-surface text-ink px-5 py-2.5 text-sm font-semibold hover:bg-ink hover:text-surface transition disabled:opacity-50 disabled:cursor-progress"
         >
           See an example run
-        </a>
+        </button>
         <SettingsPopover config={config} onChange={setConfig} />
       </div>
     </form>

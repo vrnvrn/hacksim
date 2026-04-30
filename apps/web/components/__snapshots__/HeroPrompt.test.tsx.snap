@@ -15,6 +15,12 @@ bound HTMLFormElement {
     Spin up sim
   </button>,
   "2": <button
+    class="rounded-full border-2 border-ink bg-surface text-ink px-5 py-2.5 text-sm font-semibold hover:bg-ink hover:text-surface transition disabled:opacity-50 disabled:cursor-progress"
+    type="button"
+  >
+    See an example run
+  </button>,
+  "3": <button
     aria-controls="radix-_r_4_"
     aria-expanded="false"
     aria-haspopup="dialog"
