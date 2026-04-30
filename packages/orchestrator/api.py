@@ -207,8 +207,10 @@ def create_app(
             # The orchestrator runs one simulation at a time. Booting a fresh
             # one stops every prior controller so their AXL nodes do not
             # saturate the loopback Yggdrasil mesh and starve the new sim's
-            # bounty.posted broadcasts. Stop in parallel as background tasks
-            # so the new sim's spawn does not wait on slow shutdowns.
+            # bounty.posted broadcasts. Wait for the prior shutdowns to
+            # finish before spawning the new controller; otherwise two
+            # rapid spin-up clicks race and the old AXL binaries fight the
+            # new ones for ports.
             prior = list(app.state.controllers.values())
             app.state.controllers.clear()
 
@@ -223,7 +225,8 @@ def create_app(
                     old.hub.close(old.sim_id)
                 except Exception:
                     pass
-                asyncio.create_task(_stop_one(old))
+            if prior:
+                await asyncio.gather(*(_stop_one(o) for o in prior))
 
             cfg = ControllerConfig(
                 builders=req.config.builders,
