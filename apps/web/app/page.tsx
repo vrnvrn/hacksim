@@ -13,7 +13,7 @@ export default function HomePage() {
             click-to-spin example presets. The whole thing fits inside one
             viewport on a 1440x900 laptop. */}
         <section
-          className="max-w-7xl mx-auto px-6 lg:px-8 pt-10 lg:pt-12 pb-12"
+          className="max-w-7xl mx-auto px-6 lg:px-8 pt-6 lg:pt-8 pb-12"
           aria-labelledby="hero-heading"
         >
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_22rem] xl:grid-cols-[1fr_24rem] gap-10 lg:gap-12 items-start">

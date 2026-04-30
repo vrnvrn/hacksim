@@ -25,14 +25,13 @@ export function HostedModeBanner() {
       aria-label="Hosted preview notice"
       className="border-b border-border bg-canvas/70 text-body"
     >
-      <div className="max-w-7xl mx-auto px-6 lg:px-8 py-2.5 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm">
-        <span className="text-[11px] font-mono uppercase tracking-[0.18em] text-accent shrink-0">
+      <div className="max-w-7xl mx-auto px-6 lg:px-8 py-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+        <span className="font-mono uppercase tracking-[0.16em] text-accent shrink-0">
           [ hosted preview ]
         </span>
-        <span className="leading-relaxed">
-          Recorded run, not a live AXL mesh. Spin-up clicks, run logs, and
-          showcase artefacts replay fixtures. Run{" "}
-          <code className="rounded bg-surface px-1.5 py-0.5 font-mono text-[0.85em] text-ink">
+        <span className="leading-tight">
+          Recorded run, not a live AXL mesh. Run{" "}
+          <code className="rounded bg-surface px-1 py-0.5 font-mono text-[0.9em] text-ink">
             make demo
           </code>{" "}
           for the real thing.
@@ -40,7 +39,7 @@ export function HostedModeBanner() {
         <span className="ml-auto flex items-center gap-3 shrink-0">
           <Link
             href="/docs#run-it-locally"
-            className="text-xs font-medium text-accent hover:underline"
+            className="font-medium text-accent hover:underline"
           >
             Run it locally &rarr;
           </Link>
@@ -48,7 +47,7 @@ export function HostedModeBanner() {
             href="https://github.com/vrnvrn/hacksim"
             target="_blank"
             rel="noreferrer"
-            className="text-xs font-medium text-body hover:text-ink"
+            className="font-medium text-body hover:text-ink"
           >
             Repo
           </Link>
