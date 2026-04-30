@@ -87,25 +87,36 @@ class WorkerState:
     def broadcast_now(self, wire: bytes) -> int:
         """Fan-out `wire` to every peer in topology. Returns success count.
 
-        Per-peer send failures are surfaced as `axl.send_failed` events on
-        the worker's stdout JSON-line channel so the run log can show why
-        the mesh quietly starves on misconfiguration. Quality-of-code nit
-        flagged in the second-pass judge review (refs/JUDGE_REVIEW_*.md).
+        Per-peer send failures are collected across the fanout and
+        emitted as one `axl.send_failed` event with a `failures: [...]`
+        array. One log line per fanout, not one per peer per retry, so a
+        misconfigured mesh does not drown the run log under 28 identical
+        lines per envelope (default population is 14 peers and fanout
+        retries twice).
         """
         sent = 0
+        failures: list[dict[str, str]] = []
         for peer_id in self.client.all_peer_ids():
             try:
                 self.client.send(peer_id, wire)
                 sent += 1
             except Exception as exc:
-                self.emit(
-                    "axl.send_failed",
+                failures.append(
                     {
                         "peer_id": peer_id,
                         "error_class": type(exc).__name__,
                         "error": str(exc),
-                    },
+                    }
                 )
+        if failures:
+            self.emit(
+                "axl.send_failed",
+                {
+                    "failure_count": len(failures),
+                    "success_count": sent,
+                    "failures": failures,
+                },
+            )
         return sent
 
     def fanout(

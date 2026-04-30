@@ -178,15 +178,14 @@ class TestLoopHandlers:
 
 
 class TestBroadcastNow:
-    def test_send_failure_is_emitted_as_event(self, ctx, fake, capsys):
-        """Per-peer send errors surface on stdout instead of being swallowed.
+    def test_send_failures_are_rolled_up_into_one_event(self, ctx, fake, capsys):
+        """All per-peer failures across one fanout become one event.
 
-        Quality-of-code remediation from the second-pass judge review:
-        broadcast_now used to `except Exception: pass`, so a misconfigured
-        mesh appeared as quiet starvation in the UI.
+        Payload carries `failure_count`, `success_count`, and a
+        `failures: [...]` array. One log line per fanout, not one per
+        peer per retry.
         """
         client = ctx.client()
-        # Stub send to fail every time; topology-derived peer set is two.
         boom = RuntimeError("simulated send failure")
 
         def failing_send(peer_id: str, data: bytes, **_: object) -> int:
@@ -206,12 +205,29 @@ class TestBroadcastNow:
 
         out = capsys.readouterr().out.splitlines()
         events = [json.loads(line) for line in out if "axl.send_failed" in line]
-        assert len(events) == 2
-        peer_ids = sorted(e["payload"]["peer_id"] for e in events)
+        assert len(events) == 1
+        payload = events[0]["payload"]
+        assert payload["failure_count"] == 2
+        assert payload["success_count"] == 0
+        peer_ids = sorted(f["peer_id"] for f in payload["failures"])
         assert peer_ids == sorted([PEER_A, PEER_B])
-        for e in events:
-            assert e["payload"]["error_class"] == "RuntimeError"
-            assert "simulated send failure" in e["payload"]["error"]
+        for f in payload["failures"]:
+            assert f["error_class"] == "RuntimeError"
+            assert "simulated send failure" in f["error"]
+
+    def test_no_event_when_every_peer_succeeds(self, ctx, fake, capsys):
+        """Successful fanouts emit no axl.send_failed event at all."""
+        fake.state.topology = {
+            "our_ipv6": "200::1",
+            "our_public_key": OUR,
+            "peers": [{"public_key": PEER_A, "up": True}],
+            "tree": [],
+        }
+        state = WorkerState(ctx=ctx, client=ctx.client())
+        sent = state.broadcast_now(b"payload")
+        assert sent == 1
+        out = capsys.readouterr().out
+        assert "axl.send_failed" not in out
 
 
 class TestStartStopEvents:
