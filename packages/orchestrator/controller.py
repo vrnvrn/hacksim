@@ -116,7 +116,10 @@ class SimController:
         self._running = True
 
         # Pace forwards to the organiser and any other role that reads it.
-        os.environ.setdefault("HACKSIM_PACE", self.config.pace)
+        # Direct assignment, not setdefault, so a second sim in the same
+        # process picks up its own pace instead of inheriting the first
+        # sim's value.
+        os.environ["HACKSIM_PACE"] = self.config.pace
 
         # 1) Bootstrap organiser.
         loop = asyncio.get_event_loop()
