@@ -28,11 +28,9 @@ const SMALL_MODE: SimConfig = {
 const PLACEHOLDER =
   "an onchain agents hackathon with five sponsors and a $5k pool";
 
-const EXAMPLE_SIM_ID = "sim_2026-04-28_a1b2c3";
-
 export function HeroPrompt({
   onSubmit,
-  exampleHref = `/sim/${EXAMPLE_SIM_ID}`,
+  exampleHref = "/examples",
 }: {
   onSubmit?: (prompt: string, cfg: SimConfig) => void;
   exampleHref?: string;
