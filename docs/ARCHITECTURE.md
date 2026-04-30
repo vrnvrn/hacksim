@@ -61,7 +61,24 @@ Three of AXL's HTTP surfaces carry every cross-agent message:
 - `POST /send`: unicast fan-out. The runtime broadcasts by iterating peers and POSTing once per destination. `WorkerState.fanout` schedules timed re-broadcasts and `WorkerState.broadcast_now` is the per-tick fan-out, with gossip-style reforward after dedupe so freshly joined peers also see the envelope.
 - `GET /recv`: per-node inbox drain. Workers dedupe on `(sender_id, type, payload_id)` before dispatching to a per-envelope handler.
 
-AXL also ships `POST /mcp/{peer}/{service}` for typed JSON-RPC and `/a2a/{peer}` for streaming. HackSim does not exercise either in this submission. Wiring an MCP-based judge round trip is captured in `refs/PLAN.md` section 19c as a v2 task with a complete design (per-node router config in the spawner, per-judge aiohttp router, `AxlClient.mcp_call`, organiser changes, two-node integration test).
+AXL also ships `POST /mcp/{peer}/{service}` for typed JSON-RPC and `/a2a/{peer}` for streaming. HackSim does not exercise either in this submission. Wiring an MCP-based judge round trip is captured in [docs/V2_MCP.md](V2_MCP.md) as a four-step task for forks who want to extend.
+
+## What changed from autoresearch
+
+Gensyn ships a reference application for AXL, the [collaborative-autoresearch-demo](https://github.com/gensyn-ai/collaborative-autoresearch-demo). HackSim treats `research_network.py` as a sibling and ports the transport patterns verbatim. A maintainer auditing depth of integration can read the deltas line by line:
+
+| Pattern | Autoresearch | HackSim | Where in HackSim |
+|---|---|---|---|
+| `_post` and `_get` over urllib | `research_network.py` urllib helpers | identical shape | [packages/axl_client/client.py:35-100](../packages/axl_client/client.py#L35) |
+| Peer enumeration unions `peers` and `tree` | `research_network.py:214-234` | identical algorithm, different field names | [packages/axl_client/client.py:182-210](../packages/axl_client/client.py#L182) |
+| Fan-out broadcast loop | `research_network.py:285-298` | same shape; we wrap the loop in `WorkerState.broadcast_now` | [packages/agents/_runtime.py:87-122](../packages/agents/_runtime.py#L87) |
+| Drain loop | `research_network.py:320-374` | one delta: dedupe key is `(sender_id, type, payload_id)` instead of `(sender_id, round_num)` to handle eight envelope types in a phased lifecycle instead of one in a flat topology | [packages/agents/_runtime.py:141-215](../packages/agents/_runtime.py#L141) |
+| Skill manifest as the integration primitive | `skills/autoresearch-network/` exposes `/status`, `/recv`, `/broadcast` (three commands) | `packages/skills/hacksim-network/` exposes `/status`, `/recv`, `/post-bounty`, `/submit-project` (four commands, mapped to role responsibilities) | [packages/skills/hacksim-network/](../packages/skills/hacksim-network/) |
+| Number of envelope types | one (`research.contribution`) | eight (`bounty.posted`, `team.forming`, `team.formed`, `project.submitted`, `rubric.published`, `verdict.published`, `phase.tick`, `hackathon.closed`) | [packages/protocol/envelopes.py](../packages/protocol/envelopes.py) |
+| Topology shape | flat (every peer equal) | typed roles in a phased lifecycle (organiser, bounty designer, builder, judge) | [packages/agents/](../packages/agents/) |
+| Gossip / re-broadcast | autoresearch re-shares each finding once per cycle | HackSim schedules two delayed re-broadcasts via `WorkerState.fanout` plus gossip-on-receive after dedupe | [packages/agents/_runtime.py:124-146](../packages/agents/_runtime.py#L124) |
+
+The transport is unchanged; the application shape, the lifecycle, and the artefact pipeline are HackSim's contribution.
 
 ## Two channels, one trust boundary
 
