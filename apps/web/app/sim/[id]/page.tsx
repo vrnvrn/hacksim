@@ -12,6 +12,7 @@ import { RefreshTicker } from "@/components/RefreshTicker";
 import { NowHappening } from "@/components/NowHappening";
 import { SubmissionsGrid } from "@/components/SubmissionsGrid";
 import { RecordedRunPill } from "@/components/RecordedRunPill";
+import { SimErrorBanner } from "@/components/SimErrorBanner";
 import { getSnapshot } from "@/lib/api";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
@@ -49,6 +50,7 @@ export default async function SimPage({
     <>
       <RefreshTicker initialPhase={snapshot.phase} />
       <Nav />
+      <SimErrorBanner simId={snapshot.id} />
       <main className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-x-8 max-w-7xl mx-auto px-6 lg:px-8 pt-10 pb-24">
         <div className="min-w-0">
           <header className="mb-12 space-y-5">
