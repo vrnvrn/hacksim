@@ -5,6 +5,7 @@
  * want to verify the qualification gate, and curious users who want to
  * know what is real and what is a fixture before they hit Spin up sim.
  */
+import { FaqExpandAll } from "./FaqExpandAll";
 
 type Faq = {
   q: string;
@@ -291,20 +292,25 @@ export function Faq() {
       aria-labelledby="faq-heading"
       className="mt-16 rounded-3xl border border-border bg-surface p-8"
     >
-      <p className="text-xs font-mono uppercase tracking-[0.18em] text-accent">
-        [ faq ]
-      </p>
-      <h2
-        id="faq-heading"
-        className="font-display text-3xl font-semibold text-ink mt-2"
-      >
-        Frequently asked
-      </h2>
+      <div className="flex items-baseline justify-between gap-4">
+        <div>
+          <p className="text-xs font-mono uppercase tracking-[0.18em] text-accent">
+            [ faq ]
+          </p>
+          <h2
+            id="faq-heading"
+            className="font-display text-3xl font-semibold text-ink mt-2"
+          >
+            Frequently asked
+          </h2>
+        </div>
+        <FaqExpandAll />
+      </div>
       <p className="text-body mt-3 max-w-3xl leading-relaxed">
         Answers a Gensyn judge, an ETHGlobal reviewer, or a curious user is
         likely to want before reading any code.
       </p>
-      <div className="mt-8 divide-y divide-border">
+      <div id="faq-list" className="mt-8 divide-y divide-border">
         {ITEMS.map((item) => (
           <details key={item.q} className="group py-4">
             <summary className="cursor-pointer list-none flex items-baseline justify-between gap-4 hover:text-ink transition">
@@ -327,6 +333,7 @@ export function Faq() {
     </section>
   );
 }
+
 
 function P({ children }: { children: React.ReactNode }) {
   return <p className="leading-relaxed">{children}</p>;
