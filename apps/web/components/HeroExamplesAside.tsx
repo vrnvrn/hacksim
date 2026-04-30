@@ -40,6 +40,7 @@ const DEFAULT_CONFIG: SimConfig = {
   judges: 3,
   designers: 3,
   duration_hint: "short",
+  pace: "quick",
 };
 
 export function HeroExamplesAside() {

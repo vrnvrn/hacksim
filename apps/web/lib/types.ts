@@ -4,11 +4,14 @@
 
 export type PeerId = string; // 64 hex chars
 
+export type SimPace = "smoke" | "quick" | "medium" | "deep";
+
 export type SimConfig = {
   builders: number;
   judges: number;
   designers: number;
   duration_hint: "short" | "medium" | "long";
+  pace?: SimPace;
 };
 
 export type Bounty = {

@@ -16,6 +16,7 @@ const DEFAULT_CONFIG: SimConfig = {
   judges: 3,
   designers: 3,
   duration_hint: "short",
+  pace: "quick",
 };
 
 const SMALL_MODE: SimConfig = {
@@ -23,7 +24,19 @@ const SMALL_MODE: SimConfig = {
   judges: 1,
   designers: 1,
   duration_hint: "short",
+  pace: "quick",
 };
+
+const PACE_PRESETS: Array<{
+  value: NonNullable<SimConfig["pace"]>;
+  label: string;
+  hint: string;
+}> = [
+  { value: "smoke", label: "Smoke", hint: "75s, headless harness" },
+  { value: "quick", label: "Quick", hint: "110s, watchable demo" },
+  { value: "medium", label: "Medium", hint: "5 to 6 minutes" },
+  { value: "deep", label: "Deep", hint: "12 minutes" },
+];
 
 const PLACEHOLDER =
   "an onchain agents hackathon with five sponsors and a $5k pool";
@@ -180,6 +193,10 @@ function SettingsPopover({
             Counts are capped so the loopback mesh stays watchable. Bigger
             sims need a real multi-host bootstrap.
           </p>
+          <PaceRow
+            value={config.pace ?? "quick"}
+            onChange={(pace) => onChange({ ...config, pace })}
+          />
           <KeyRow />
           <div className="mt-5 flex items-center justify-between border-t border-border pt-4">
             <button
@@ -312,6 +329,49 @@ function SliderRow({
         onChange={(e) => onChange(Number(e.target.value))}
         className="mt-2 w-full accent-accent"
       />
+    </div>
+  );
+}
+
+function PaceRow({
+  value,
+  onChange,
+}: {
+  value: NonNullable<SimConfig["pace"]>;
+  onChange: (pace: NonNullable<SimConfig["pace"]>) => void;
+}) {
+  const active = PACE_PRESETS.find((p) => p.value === value) ?? PACE_PRESETS[1];
+  return (
+    <div className="mt-5 border-t border-border pt-4">
+      <label className="text-sm font-medium text-ink flex items-center justify-between">
+        <span>Pace</span>
+        <span className="text-[10px] uppercase tracking-wider font-mono text-muted">
+          {active.hint}
+        </span>
+      </label>
+      <div
+        role="radiogroup"
+        aria-label="Simulation pace"
+        className="mt-2 grid grid-cols-4 gap-1 rounded-md border border-border p-1 bg-canvas/40"
+      >
+        {PACE_PRESETS.map((p) => (
+          <button
+            key={p.value}
+            type="button"
+            role="radio"
+            aria-checked={p.value === value}
+            onClick={() => onChange(p.value)}
+            className={cn(
+              "rounded px-2 py-1.5 text-xs font-medium transition",
+              p.value === value
+                ? "bg-accent text-white"
+                : "text-body hover:bg-surface",
+            )}
+          >
+            {p.label}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }

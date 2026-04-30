@@ -164,9 +164,13 @@ const ITEMS: Faq[] = [
           </li>
         </Ul>
         <P>
-          The Settings popover under the hero prompt caps agent counts
+          The Settings popover under the hero prompt picks the pace
+          (Smoke / Quick / Medium / Deep) and caps agent counts
           (builders 1-10, judges 1-5, designers 1-5) so the loopback
-          mesh stays watchable.
+          mesh stays watchable. Pace and counts ride the
+          <Code>POST /api/sim</Code> body; the orchestrator forwards
+          them into every spawned worker via{" "}
+          <Code>HACKSIM_PACE</Code> and the role argv.
         </P>
       </>
     ),
