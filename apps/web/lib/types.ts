@@ -97,8 +97,11 @@ export const PHASE_LABELS: Record<Phase, string> = {
   4: "closed",
 };
 
+export const SNAPSHOT_SCHEMA_VERSION = 1;
+
 export type Snapshot = {
   id: string;
+  schema_version?: number;
   prompt: string;
   config: SimConfig;
   phase: Phase;

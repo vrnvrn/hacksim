@@ -23,9 +23,18 @@ from typing import Any
 from packages.protocol import Phase
 
 
+# Bump SCHEMA_VERSION whenever the snapshot shape changes in a way the
+# frontend cannot tolerate (renaming fields, dropping required keys, or
+# changing a nested shape). The frontend's loadSnapshot reads it on
+# every refresh and falls back to a "snapshot mismatch" banner if the
+# major number does not match its expected value.
+SCHEMA_VERSION = 1
+
+
 def _empty_snapshot(*, sim_id: str, prompt: str, config: dict, created_at: str) -> dict:
     return {
         "id": sim_id,
+        "schema_version": SCHEMA_VERSION,
         "prompt": prompt,
         "config": config,
         "phase": 0,
