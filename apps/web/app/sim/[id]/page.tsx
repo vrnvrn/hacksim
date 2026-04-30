@@ -11,6 +11,7 @@ import { RunLog } from "@/components/RunLog";
 import { RefreshTicker } from "@/components/RefreshTicker";
 import { NowHappening } from "@/components/NowHappening";
 import { SubmissionsGrid } from "@/components/SubmissionsGrid";
+import { RecordedRunPill } from "@/components/RecordedRunPill";
 import { getSnapshot } from "@/lib/api";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
@@ -70,6 +71,7 @@ export default async function SimPage({
                 tone="muted"
               />
               <PhasePill phase={snapshot.phase} />
+              <RecordedRunPill createdAt={snapshot.created_at} />
               {snapshot.phase >= 4 ? (
                 <Link
                   href={`/sim/${id}/showcase`}

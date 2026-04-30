@@ -3,6 +3,7 @@ import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 import { StatPill } from "@/components/StatPill";
 import { WinnerGrid } from "@/components/WinnerGrid";
+import { RecordedRunPill } from "@/components/RecordedRunPill";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import type { Snapshot } from "@/lib/types";
@@ -68,6 +69,7 @@ export default async function ShowcasePage({
               tone="muted"
             />
             <StatPill label={`${submitted} submissions`} tone="muted" />
+            <RecordedRunPill createdAt={snapshot.created_at} />
           </div>
         </header>
 
