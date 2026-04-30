@@ -19,7 +19,7 @@ WEB_PORT="${HACKSIM_WEB_PORT:-3000}"
 PACE="${HACKSIM_PACE:-quick}"
 
 if [ ! -x "${VENV_PY}" ]; then
-  echo "Python venv not found at ${REPO_ROOT}/.venv. Run 'python3 -m venv .venv && .venv/bin/pip install -e .[dev,orchestrator,agents] fastapi uvicorn[standard] httpx anthropic' first." >&2
+  echo "Python venv not found at ${REPO_ROOT}/.venv. Run 'python3 -m venv .venv && .venv/bin/pip install -e .[dev,orchestrator] fastapi uvicorn[standard] httpx anthropic' first." >&2
   exit 1
 fi
 

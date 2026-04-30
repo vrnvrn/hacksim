@@ -15,7 +15,7 @@ You type a prompt like `a research hackathon on protein folding` or `an onchain 
 - **Organiser**, one per sim. Reads the prompt, kicks off phases, tallies the leaderboard.
 - **Bounty designers**, three by default. Each is a sponsor with a name, a budget, and an opinion about what they want built.
 - **Builders**, eight by default. Each has a skill profile. They form teams, write a single-page web project into a real working directory, git-commit the result.
-- **Judges**, three by default. Each writes its own rubric and scores every project, optionally interacting with the running demo via a Playwright browser.
+- **Judges**, three by default. Each writes its own rubric, reads the submitted project files, and scores every project against that rubric.
 
 Every agent runs its own AXL node. The orchestrator only spawns processes and serves the UI. Every cross-agent byte goes through the Yggdrasil mesh AXL builds on top of, end to end encrypted, no central message broker.
 
@@ -95,7 +95,7 @@ Each role process owns:
 3. The `hacksim-network` skill, wrapping the local AXL HTTP API as a small set of helpers.
 4. A `CLAUDE.md` persona file holding the role's brief.
 
-Builders also own a working tree where they write project artefacts. Judges also own a Playwright sandbox for hands-on evaluation.
+Builders also own a working tree where they write project artefacts. Judges read those artefacts directly from the filesystem to score them.
 
 ## Status
 

@@ -19,9 +19,6 @@ orchestrator = [
   "aiohttp>=3.9",
   "sse-starlette>=2.0",
 ]
-agents = [
-  "playwright>=1.40",
-]
 
 [build-system]
 requires = ["hatchling"]
