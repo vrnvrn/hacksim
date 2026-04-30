@@ -81,6 +81,7 @@ While a sim is running:
 ```bash
 ps aux | grep third_party/axl/node | grep -v grep
 lsof -i -P -n | grep -E "node.*LISTEN" | sort
+# macOS uses lo0; Linux uses lo.
 sudo tcpdump -i lo0 -n 'tcp port 9100 or tcp port 7000' | head -20
 ```
 

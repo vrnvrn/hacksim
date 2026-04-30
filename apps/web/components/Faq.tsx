@@ -248,7 +248,7 @@ ps aux | grep third_party/axl/node | grep -v grep
 # 2) See each role's listening ports.
 lsof -i -P -n | grep -E "node.*LISTEN" | sort
 
-# 3) Watch loopback traffic during a run.
+# 3) Watch loopback traffic during a run (macOS uses lo0; Linux uses lo).
 sudo tcpdump -i lo0 -n 'tcp port 9100 or tcp port 7000' | head -20`}</Pre>
         <P>
           Stopping every node interrupts the simulation immediately:

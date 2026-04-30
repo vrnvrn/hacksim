@@ -28,6 +28,7 @@ const VERIFY = `# 1) Run the integration test that boots two real AXL Go binarie
 pytest tests/integration/test_two_node_send.py -q
 
 # 2) During make demo, watch loopback traffic to AXL on 127.0.0.1.
+#    macOS uses lo0; Linux uses lo.
 sudo tcpdump -i lo0 -n 'tcp port 9100' | head -20
 
 # 3) See the fifteen AXL processes the orchestrator spawned.
