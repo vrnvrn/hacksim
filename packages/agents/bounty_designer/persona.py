@@ -33,8 +33,11 @@ def sponsor_for_peer_id(peer_id: str) -> dict[str, str]:
 def load_persona_text() -> str:
     """Read the BountyDesigner CLAUDE.md from this package and return it.
 
-    Used as the system prompt in lite mode. In Claude Code mode, the
-    file is copied into the agent's working directory.
+    Used as the system prompt for the Anthropic SDK call when
+    ANTHROPIC_API_KEY is set. The deterministic stub does not load the
+    persona text; it pulls a sponsor archetype from `pick_sponsor`
+    instead. The persona file also ships in the GitHub repo so a
+    reviewer can read every role's brief end to end.
     """
     md = Path(__file__).resolve().parent / "CLAUDE.md"
     return md.read_text(encoding="utf-8")

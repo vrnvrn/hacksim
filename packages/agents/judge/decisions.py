@@ -1,9 +1,10 @@
 """Score a project submission against the rubric.
 
-Lite mode produces deterministic, archetype-flavoured scores keyed off
-the (judge_peer_id, project_id) pair so two judges score the same project
-differently but the same judge always returns the same numbers. With
-ANTHROPIC_API_KEY set, scoring upgrades to a Claude call against the
+Two decision paths, same envelope shape. The default produces
+deterministic, archetype-flavoured scores keyed off the
+(judge_peer_id, project_id) pair so two judges score the same project
+differently while the same judge always returns the same numbers. With
+`ANTHROPIC_API_KEY` set, scoring upgrades to a Claude call against the
 rubric and the bounty's qualification list.
 """
 

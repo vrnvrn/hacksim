@@ -1,10 +1,15 @@
-"""Bounty composition. Lite mode (Anthropic SDK) plus a deterministic
-stub fallback when no API key is set.
+"""Bounty composition. Two decision paths, same envelope shape.
 
-The stub is not a placeholder. It produces real, distinct, on-theme
-bounties keyed off the designer's peer id and the human prompt. The
-demo runs cleanly without ANTHROPIC_API_KEY in the environment, which
-matters for first-time reviewers and CI.
+With `ANTHROPIC_API_KEY` set, the run loop calls the Anthropic SDK
+against the BountyDesigner persona prompt and the human prompt, then
+parses one bounty out of the response. Without a key, a deterministic
+stub runs instead, varying output by the designer's peer id and the
+human prompt so each sponsor on the mesh produces a distinct, on-theme
+bounty.
+
+The stub is not a placeholder. The demo runs cleanly without
+`ANTHROPIC_API_KEY` in the environment, which matters for first-time
+reviewers and CI.
 """
 
 from __future__ import annotations

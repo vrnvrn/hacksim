@@ -19,8 +19,12 @@ the others by hex peer id.
 API ports are allocated from a base (9200 default) plus the running index.
 TCP ports all share the default 7000 (see commit 07 for why this is correct).
 
-The Spawner does not start Claude Code sessions; that lands in commit 12 once
-the hacksim-network skill (commit 11) is in place.
+The Spawner manages two process trees per role node: the AXL Go binary on a
+per-node config file, and the Python role worker spawned via
+`python -m packages.agents.worker` with the role's env vars set. Claude Code
+sessions are not part of the default demo path; if a future commit wires the
+opt-in Claude Code variant, it would replace the Python worker subprocess
+without touching the AXL node lifecycle.
 """
 
 from __future__ import annotations
