@@ -13,10 +13,26 @@ import { NowHappening } from "@/components/NowHappening";
 import { SubmissionsGrid } from "@/components/SubmissionsGrid";
 import { RecordedRunPill } from "@/components/RecordedRunPill";
 import { SimErrorBanner } from "@/components/SimErrorBanner";
+import type { Metadata } from "next";
 import { getSnapshot } from "@/lib/api";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import type { Snapshot } from "@/lib/types";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  try {
+    const snap = await loadSnapshot(id);
+    const trimmed = snap.prompt.length > 60 ? `${snap.prompt.slice(0, 60)}...` : snap.prompt;
+    return { title: `HackSim · "${trimmed}"` };
+  } catch {
+    return { title: "HackSim · sim" };
+  }
+}
 
 async function loadSnapshot(simId: string): Promise<Snapshot> {
   // In RSC the relative URL needs a host. We resolve via the request headers
