@@ -120,22 +120,25 @@ const ITEMS: Faq[] = [
     a: (
       <>
         <P>
-          No. <Code>make demo</Code> works with no key set; every agent
-          call falls back to a deterministic stub. With a key set, every
-          decision and every project&rsquo;s HTML upgrades to a Claude
-          haiku 4.5 call. Either way, the AXL mesh, the cross-agent
-          envelopes, and the artefact pipeline are real.
+          No. The "What AI are the agents using?" entry above covers
+          which call sites the key affects. This entry covers the two
+          ways to set the key when running locally.
         </P>
-        <P>
-          Two ways to set the key when running locally. Export{" "}
-          <Code>ANTHROPIC_API_KEY</Code> in the shell that runs{" "}
-          <Code>make demo</Code>, or paste it into the password field in
-          the home page Settings popover. The in-UI input only renders
-          when the page is served from <Code>localhost</Code>, the field
-          is <Code>SecretStr</Code> on the server so it never reaches a
-          log line, and the orchestrator refuses the field with HTTP 403
-          from any non-loopback origin.
-        </P>
+        <Ul>
+          <li>
+            Export <Code>ANTHROPIC_API_KEY</Code> in the shell that runs{" "}
+            <Code>make demo</Code>. The Spawner inherits the env var and
+            forwards it to every spawned worker process.
+          </li>
+          <li>
+            Paste the key into the password field in the home page
+            Settings popover. The in-UI input only renders when the page
+            is served from <Code>localhost</Code>, the field is{" "}
+            <Code>SecretStr</Code> on the server so it never reaches a
+            log line, and the orchestrator refuses the field with HTTP
+            403 from any non-loopback origin.
+          </li>
+        </Ul>
       </>
     ),
   },
