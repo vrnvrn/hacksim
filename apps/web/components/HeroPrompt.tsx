@@ -118,11 +118,24 @@ export function HeroPrompt({
           type="submit"
           disabled={isPending}
           className={cn(
-            "rounded-md px-5 py-2.5 bg-accent text-white text-sm font-semibold hover:opacity-90 transition disabled:opacity-50",
+            "inline-flex items-center gap-2 rounded-md px-5 py-2.5 bg-accent text-white text-sm font-semibold hover:opacity-90 transition disabled:opacity-50",
           )}
         >
-          {isPending ? "Spinning up..." : "Spin up sim"}
+          {isPending ? (
+            <>
+              <span
+                aria-hidden="true"
+                className="inline-block h-3 w-3 rounded-full border-2 border-white/40 border-t-white animate-spin"
+              />
+              Spinning up 15 AXL nodes...
+            </>
+          ) : (
+            "Spin up sim"
+          )}
         </button>
+        {isPending ? (
+          <span className="text-xs text-muted">about 10 seconds</span>
+        ) : null}
         <a
           href={exampleHref}
           className="rounded-full border-2 border-ink bg-surface text-ink px-5 py-2.5 text-sm font-semibold hover:bg-ink hover:text-surface transition"
