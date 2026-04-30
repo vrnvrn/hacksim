@@ -74,6 +74,20 @@ class TestSnapshot:
         assert resp.status_code == 404
 
 
+class TestDelete:
+    def test_delete_clears_the_sim_record(self, client):
+        sim_id = client.post("/api/sim", json={"prompt": "to delete"}).json()["id"]
+        resp = client.delete(f"/api/sim/{sim_id}")
+        assert resp.status_code == 204
+        # Subsequent snapshot returns 404 because the record is gone.
+        again = client.get(f"/api/sim/{sim_id}/snapshot")
+        assert again.status_code == 404
+
+    def test_delete_404_for_unknown_sim(self, client):
+        resp = client.delete("/api/sim/sim_never_existed")
+        assert resp.status_code == 404
+
+
 class TestStream:
     def test_stream_404_for_unknown_sim(self, client):
         resp = client.get("/api/sim/sim_unknown/stream")

@@ -298,6 +298,32 @@ def create_app(
             raise HTTPException(status_code=404, detail=f"unknown sim id: {sim_id}")
         return record.snapshot().model_dump()
 
+    @app.delete("/api/sim/{sim_id}", status_code=status.HTTP_204_NO_CONTENT)
+    async def stop_sim(sim_id: Annotated[str, Path(min_length=1, max_length=64)]):
+        """Stop a running simulation (auto-start mode only).
+
+        Calls SimController.stop, closes the SSE channel for this sim id,
+        and removes the controller from app state. Subsequent
+        snapshot/stream requests with the same id return 404. Useful when
+        a user wants to free the loopback ports without spawning a new
+        sim, and as a cleanup hook for the future "stop this sim" UI.
+        """
+        controller: SimController | None = app.state.controllers.pop(sim_id, None)
+        if controller is None:
+            # Not auto-start mode, or the sim was never running.
+            if app.state.sims.pop(sim_id, None) is None:
+                raise HTTPException(status_code=404, detail=f"unknown sim id: {sim_id}")
+            return None
+        try:
+            controller.hub.close(sim_id)
+        except Exception:
+            pass
+        try:
+            await controller.stop()
+        except Exception:
+            pass
+        return None
+
     @app.on_event("shutdown")
     async def _on_shutdown():
         # Cleanly stop every running controller so workers and AXL nodes
