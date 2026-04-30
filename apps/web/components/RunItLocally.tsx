@@ -106,6 +106,7 @@ export function RunItLocally() {
       <pre className="mt-3 rounded-xl bg-navy-950 text-canvas font-mono text-xs px-4 py-3 overflow-x-auto leading-relaxed">
         <code>{VERIFY}</code>
       </pre>
+      <TcpdumpRecording />
 
       <p className="text-xs text-muted mt-6 leading-relaxed">
         The chronological build is readable in fifteen minutes under{" "}
@@ -125,6 +126,79 @@ export function RunItLocally() {
           className="text-accent hover:underline"
         >
           docs/ARCHITECTURE.md
+        </a>
+        .
+      </p>
+    </section>
+  );
+}
+
+/**
+ * Optional tcpdump recording. If apps/web/public/tcpdump-demo.cast is
+ * present, embed it as an asciinema-player. If absent, the section is
+ * hidden so the panel reads cleanly. The recording captures real AXL
+ * traffic on 127.0.0.1:9100 during a make demo run; instructions for
+ * recording one live in apps/web/public/tcpdump-demo.README.md.
+ *
+ * Server-rendered: a HEAD on the cast asset would require Node fs
+ * access at request time. Instead we always render the section but
+ * point at /tcpdump-demo.cast; if the file is absent the asciinema
+ * player shows its built-in error state, which is cleaner than a
+ * silent empty pane.
+ */
+function TcpdumpRecording() {
+  return (
+    <section
+      aria-labelledby="tcpdump-recording-heading"
+      className="mt-6 rounded-xl border border-border bg-canvas/40 p-4"
+    >
+      <h3
+        id="tcpdump-recording-heading"
+        className="font-display text-lg font-semibold text-ink"
+      >
+        Watch a recorded run
+      </h3>
+      <p className="text-sm text-body mt-2 max-w-3xl leading-relaxed">
+        Recording of{" "}
+        <code className="rounded bg-canvas px-1 py-0.5 font-mono text-[0.85em] text-ink">
+          tcpdump
+        </code>{" "}
+        on the loopback bootstrap during a real{" "}
+        <code className="rounded bg-canvas px-1 py-0.5 font-mono text-[0.85em] text-ink">
+          make demo
+        </code>{" "}
+        run. Every line is one AXL TLS packet between two role nodes;
+        nothing else hits the wire.
+      </p>
+      <noscript>
+        <p className="text-xs text-muted mt-3">
+          The asciinema embed requires JavaScript. The recording lives at
+          /tcpdump-demo.cast.
+        </p>
+      </noscript>
+      {/* eslint-disable-next-line @next/next/no-sync-scripts */}
+      <script
+        src="https://cdn.jsdelivr.net/npm/asciinema-player@3.7.0/dist/bundle/asciinema-player.min.js"
+        async
+      />
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/asciinema-player@3.7.0/dist/bundle/asciinema-player.css"
+      />
+      <div className="mt-3 rounded-lg overflow-hidden border border-border">
+        {/* @ts-expect-error custom element from the asciinema-player bundle */}
+        <asciinema-player src="/tcpdump-demo.cast" cols="100" rows="20" />
+      </div>
+      <p className="text-[11px] text-muted mt-2 leading-relaxed">
+        If the player above is empty, the recording has not yet been
+        added. Instructions for recording one live in{" "}
+        <a
+          href="https://github.com/vrnvrn/hacksim/blob/main/apps/web/public/tcpdump-demo.README.md"
+          target="_blank"
+          rel="noreferrer"
+          className="text-accent hover:underline"
+        >
+          apps/web/public/tcpdump-demo.README.md
         </a>
         .
       </p>
