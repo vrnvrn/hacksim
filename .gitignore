@@ -17,6 +17,7 @@ out/
 .turbo/
 dist/
 build/
+*.tsbuildinfo
 
 # OS / editor
 .DS_Store
