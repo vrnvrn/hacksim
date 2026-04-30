@@ -42,11 +42,11 @@ exports[`Footer > matches the default snapshot 1`] = `
         <li>
           <a
             class="text-body hover:text-ink transition"
-            href="https://docs.anthropic.com/claude/docs/claude-code"
+            href="https://www.anthropic.com/claude"
             rel="noreferrer"
             target="_blank"
           >
-            Claude Code
+            Anthropic Claude
           </a>
         </li>
         <li>

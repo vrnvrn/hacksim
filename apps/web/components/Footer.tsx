@@ -30,12 +30,12 @@ export function Footer() {
             </li>
             <li>
               <a
-                href="https://docs.anthropic.com/claude/docs/claude-code"
+                href="https://www.anthropic.com/claude"
                 className="text-body hover:text-ink transition"
                 target="_blank"
                 rel="noreferrer"
               >
-                Claude Code
+                Anthropic Claude
               </a>
             </li>
             <li>
