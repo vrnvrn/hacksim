@@ -40,6 +40,8 @@ make demo
 
 `make demo` boots the FastAPI orchestrator and the Next.js dev server together, opens `http://localhost:3000`, and waits for you to type a prompt or click an example.
 
+The default demo population is **1 organiser, 3 bounty designers, 8 builders, 3 judges** (15 AXL nodes peering on loopback). `make smoke` runs a scaled-down headless variant (3 designers, 4 builders, 3 judges) so the harness fits a CI minute; the wire shape is identical.
+
 ### Prerequisites
 
 - Go 1.25.5 or newer (for the AXL binary).

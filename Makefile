@@ -9,7 +9,9 @@ help:
 	@echo "  make build-axl       build the AXL Go binary in third_party/axl"
 	@echo "  make gen-keys        generate ed25519 keys for the default agent count"
 	@echo "  make demo            launch orchestrator + frontend together (live)"
+	@echo "                       full demo population: 1 organiser, 3 designers, 8 builders, 3 judges"
 	@echo "  make smoke           headless end-to-end smoke (no browser)"
+	@echo "                       scaled-down smoke population: 1 organiser, 3 designers, 4 builders, 3 judges"
 	@echo "  make clean           remove sim-runs and node-keys directories"
 
 test:
