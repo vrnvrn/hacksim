@@ -265,10 +265,10 @@ sudo tcpdump -i lo0 -n 'tcp port 9100 or tcp port 7000' | head -20`}</Pre>
       <>
         <P>
           Yes. ETHGlobal Open Agents 2026, for the Best Application of the
-          Agent eXchange Layer (AXL) bounty. 35+ commits, each with a
-          matching process note under <Code>docs/process/</Code>. The
-          chronological build is readable in roughly fifteen minutes.
-          Source at{" "}
+          Agent eXchange Layer (AXL) bounty. Every commit landed during
+          the hackathon window, each with a matching process note under{" "}
+          <Code>docs/process/</Code>. The chronological build is
+          readable in roughly twenty minutes. Source at{" "}
           <A href="https://github.com/vrnvrn/hacksim">
             github.com/vrnvrn/hacksim
           </A>
