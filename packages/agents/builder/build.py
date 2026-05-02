@@ -18,7 +18,11 @@ import os
 import re
 import subprocess
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
+
+from packages.agents._anthropic import call_with_retry, make_client
+
+EmitFn = Callable[[str, dict[str, Any]], None]
 
 
 def write_project(
@@ -28,10 +32,14 @@ def write_project(
     skills: list[str],
     sender_peer_id: str,
     sim_prompt: str = "",
+    emit: EmitFn | None = None,
 ) -> dict[str, Any]:
     """Materialise project files into `work_dir`, git commit, return metadata.
 
     Returns: {commit_hash, entry_path, files: [{path, size_bytes}], title, tagline}.
+
+    `emit`, when supplied, is the role worker's `state.emit` so SDK
+    failures land on the SSE stream as `decision.anthropic_failed`.
     """
     work_dir.mkdir(parents=True, exist_ok=True)
 
@@ -40,6 +48,7 @@ def write_project(
         skills=skills,
         sender_peer_id=sender_peer_id,
         sim_prompt=sim_prompt,
+        emit=emit,
     )
 
     for rel, content in files.items():
@@ -68,6 +77,7 @@ def _compose_project(
     skills: list[str],
     sender_peer_id: str,
     sim_prompt: str,
+    emit: EmitFn | None = None,
 ) -> dict[str, str]:
     """Return a map of relative path -> file contents.
 
@@ -82,8 +92,12 @@ def _compose_project(
                 sender_peer_id=sender_peer_id,
                 sim_prompt=sim_prompt,
                 api_key=api_key,
+                emit=emit,
             )
         except Exception:
+            # Failure already emitted via `decision.anthropic_failed`;
+            # fall back to the stub composition so the run still produces
+            # a real, judgable artefact.
             pass
     return _compose_stub(bounty=bounty, skills=skills, sender_peer_id=sender_peer_id)
 
@@ -271,6 +285,9 @@ draw();
     }
 
 
+_MIN_INDEX_HTML_BYTES = 200
+
+
 def _compose_via_anthropic(
     *,
     bounty: dict[str, Any],
@@ -278,13 +295,12 @@ def _compose_via_anthropic(
     sender_peer_id: str,
     sim_prompt: str,
     api_key: str,
+    emit: EmitFn | None = None,
 ) -> dict[str, str]:
     """Ask Claude to compose a single-page web project as JSON files.
 
     Returns {index.html, style.css?, app.js?, __title, __tagline}.
     """
-    import anthropic
-
     user_prompt = (
         f"Hackathon prompt: \"{sim_prompt}\"\n"
         f"Bounty: {json.dumps({k: bounty.get(k) for k in ['title', 'sponsor_name', 'description', 'qualification']}, indent=2)}\n"
@@ -299,14 +315,30 @@ def _compose_via_anthropic(
         "prose, just the JSON."
     )
 
-    client = anthropic.Anthropic(api_key=api_key)
-    response = client.messages.create(
-        model=os.environ.get("HACKSIM_MODEL", "claude-haiku-4-5-20251001"),
-        max_tokens=8192,
-        system="You are a hackathon builder. Write small, well-crafted web projects.",
-        messages=[{"role": "user", "content": user_prompt}],
+    client = make_client(api_key)
+    response = call_with_retry(
+        lambda: client.messages.create(
+            model=os.environ.get("HACKSIM_MODEL", "claude-haiku-4-5-20251001"),
+            max_tokens=8192,
+            system="You are a hackathon builder. Write small, well-crafted web projects.",
+            messages=[{"role": "user", "content": user_prompt}],
+        ),
+        operation="compose_project",
+        emit=emit,
     )
     text = "".join(block.text for block in response.content if hasattr(block, "text")).strip()
+    # Mid-tag truncation. Claude returns `stop_reason="max_tokens"` when
+    # the budget runs out. We refuse the response so the caller falls
+    # back to the stub instead of writing half an `<html>` document the
+    # judge sees on the Code tab. Lift HACKSIM_MODEL to a roomier model
+    # if this trips repeatedly.
+    if getattr(response, "stop_reason", None) == "max_tokens":
+        if emit is not None:
+            emit(
+                "decision.anthropic_truncated",
+                {"operation": "compose_project", "max_tokens": 8192},
+            )
+        raise ValueError("response hit max_tokens before completing")
     match = re.search(r"\{[\s\S]*\}", text)
     if not match:
         raise ValueError("no JSON in response")
@@ -314,6 +346,10 @@ def _compose_via_anthropic(
     files = obj.get("files") or {}
     if "index.html" not in files:
         raise ValueError("response missing index.html")
+    if len(files["index.html"].encode("utf-8")) < _MIN_INDEX_HTML_BYTES:
+        # A 50-byte index.html is almost always a model that emitted a
+        # placeholder under truncation pressure. Demand a real document.
+        raise ValueError("index.html shorter than minimum size")
     out = {**files, "__title": obj.get("title", "Project"), "__tagline": obj.get("tagline", "")}
     return out
 

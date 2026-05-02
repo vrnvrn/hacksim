@@ -51,6 +51,7 @@ def _on_phase_tick(state: WorkerState, env: Envelope) -> None:
     payload = propose_bounty(
         sim_prompt=state.sim_prompt,  # type: ignore[attr-defined]
         sender_peer_id=topo.our_public_key,
+        emit=state.emit,
     )
     payload.setdefault("id", f"bnt_{secrets.token_hex(3)}")
 

@@ -162,6 +162,10 @@ def _install_signal_handlers(state: WorkerState) -> None:
     signal.signal(signal.SIGTERM, _stop)
 
 
+RECV_FATAL_AFTER = 20
+RECV_BACKOFF_MAX = 16.0
+
+
 def loop_until_closed(state: WorkerState, *, poll_interval: float = 0.5) -> None:
     """Drain /recv, dispatch handlers, run due timers, sleep, repeat.
 
@@ -169,9 +173,19 @@ def loop_until_closed(state: WorkerState, *, poll_interval: float = 0.5) -> None
     that fans out to us via /send and via tree both does not get
     double-handled. The dedupe key matches the autoresearch demo
     (research_network.py:320-374) trimmed to our envelope shape.
+
+    Recv() failures use exponential backoff capped at `RECV_BACKOFF_MAX`
+    seconds. After `RECV_FATAL_AFTER` consecutive failures the loop
+    emits `worker.fatal` and exits. A dead AXL node used to spam
+    `worker.error` twice per second forever, drowning the run log
+    without surfacing the actual problem; the breaker turns that into
+    one fatal event the SSE consumer can act on.
     """
     _install_signal_handlers(state)
     state.emit("worker.started", {"api_url": state.client.api_url})
+
+    recv_failures = 0
+    recv_backoff = poll_interval
 
     while not state.closed:
         # Fire any due timers first so re-broadcasts go out promptly.
@@ -192,9 +206,31 @@ def loop_until_closed(state: WorkerState, *, poll_interval: float = 0.5) -> None
         try:
             msg = state.client.recv()
         except Exception as e:
-            state.emit("worker.error", {"phase": "recv", "error": str(e)})
-            time.sleep(poll_interval)
+            recv_failures += 1
+            state.emit(
+                "worker.error",
+                {
+                    "phase": "recv",
+                    "error": str(e),
+                    "consecutive_failures": recv_failures,
+                },
+            )
+            if recv_failures >= RECV_FATAL_AFTER:
+                state.emit(
+                    "worker.fatal",
+                    {
+                        "phase": "recv",
+                        "consecutive_failures": recv_failures,
+                        "last_error": str(e),
+                    },
+                )
+                break
+            time.sleep(recv_backoff)
+            recv_backoff = min(recv_backoff * 2, RECV_BACKOFF_MAX)
             continue
+
+        recv_failures = 0
+        recv_backoff = poll_interval
 
         if msg is None:
             time.sleep(poll_interval)

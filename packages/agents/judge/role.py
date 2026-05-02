@@ -111,6 +111,7 @@ def _on_phase_tick(state: WorkerState, env: Envelope) -> None:
             project=project,
             bounty=bounty,
             judge_peer_id=topo.our_public_key,
+            emit=state.emit,
         )
         verdict.setdefault("id", f"verdict_{pid}_{topo.our_public_key[:8]}")
 

@@ -14,9 +14,13 @@ import hashlib
 import json
 import os
 import re
-from typing import Any
+from typing import Any, Callable
+
+from packages.agents._anthropic import call_with_retry, make_client
 
 from .persona import ARCHETYPES, CRITERIA, archetype_for_peer_id, load_persona_text
+
+EmitFn = Callable[[str, dict[str, Any]], None]
 
 
 def score_project(
@@ -24,6 +28,7 @@ def score_project(
     project: dict[str, Any],
     bounty: dict[str, Any] | None,
     judge_peer_id: str,
+    emit: EmitFn | None = None,
 ) -> dict[str, Any]:
     """Return a verdict dict for one project.
 
@@ -37,6 +42,9 @@ def score_project(
             "interactions_summary": str,
             "archetype": str,
         }
+
+    `emit`, when supplied, is the role worker's `state.emit` so SDK
+    failures land on the SSE stream as `decision.anthropic_failed`.
     """
     if api_key := os.environ.get("ANTHROPIC_API_KEY"):
         try:
@@ -45,8 +53,11 @@ def score_project(
                 bounty=bounty,
                 judge_peer_id=judge_peer_id,
                 api_key=api_key,
+                emit=emit,
             )
         except Exception:
+            # Failure already surfaced via `decision.anthropic_failed`;
+            # fall back to the deterministic archetype-flavoured stub.
             pass
     return _score_stub(project=project, bounty=bounty, judge_peer_id=judge_peer_id)
 
@@ -158,10 +169,9 @@ def _score_via_anthropic(
     bounty: dict[str, Any] | None,
     judge_peer_id: str,
     api_key: str,
+    emit: EmitFn | None = None,
 ) -> dict[str, Any]:
     """Ask Claude to score the project against the rubric. Validates JSON."""
-    import anthropic
-
     archetype = archetype_for_peer_id(judge_peer_id)
     rubric = {crit: w for crit, w in zip(CRITERIA, archetype["weights"])}
 
@@ -176,12 +186,16 @@ def _score_via_anthropic(
         "integer), 'total' (number), and 'feedback' (string)."
     )
 
-    client = anthropic.Anthropic(api_key=api_key)
-    response = client.messages.create(
-        model=os.environ.get("HACKSIM_MODEL", "claude-haiku-4-5-20251001"),
-        max_tokens=512,
-        system=load_persona_text(),
-        messages=[{"role": "user", "content": user_prompt}],
+    client = make_client(api_key)
+    response = call_with_retry(
+        lambda: client.messages.create(
+            model=os.environ.get("HACKSIM_MODEL", "claude-haiku-4-5-20251001"),
+            max_tokens=1024,
+            system=load_persona_text(),
+            messages=[{"role": "user", "content": user_prompt}],
+        ),
+        operation="score_project",
+        emit=emit,
     )
     text = "".join(block.text for block in response.content if hasattr(block, "text")).strip()
     match = re.search(r"\{[\s\S]*\}", text)

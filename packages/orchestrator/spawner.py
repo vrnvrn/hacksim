@@ -38,7 +38,7 @@ import time
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Iterator
+from typing import Any, Iterator
 
 DEFAULT_BOOTSTRAP_LISTEN = "tls://127.0.0.1:9100"
 DEFAULT_API_PORT_BASE = 9200
@@ -77,6 +77,7 @@ class NodeHandle:
     work_dir: Path
     config_path: Path
     log_path: Path
+    log_file: Any = None
 
     @property
     def api_url(self) -> str:
@@ -86,14 +87,24 @@ class NodeHandle:
         return self.process.poll() is None
 
     def stop(self, timeout: float = 5.0) -> None:
-        if not self.is_running():
+        if self.is_running():
+            self.process.terminate()
+            try:
+                self.process.wait(timeout=timeout)
+            except subprocess.TimeoutExpired:
+                self.process.kill()
+                self.process.wait(timeout=timeout)
+        self._close_log()
+
+    def _close_log(self) -> None:
+        f = self.log_file
+        if f is None:
             return
-        self.process.terminate()
         try:
-            self.process.wait(timeout=timeout)
-        except subprocess.TimeoutExpired:
-            self.process.kill()
-            self.process.wait(timeout=timeout)
+            f.close()
+        except Exception:
+            pass
+        self.log_file = None
 
 
 @dataclass
@@ -110,6 +121,7 @@ class RoleHandle:
     role: str
     sim_id: str
     worker_log_path: Path
+    worker_log_file: Any = None
 
     @property
     def api_url(self) -> str:
@@ -128,7 +140,22 @@ class RoleHandle:
             except subprocess.TimeoutExpired:
                 self.worker.kill()
                 self.worker.wait(timeout=timeout)
+        # Close the worker log file handle before the node stop fires
+        # (which closes the AXL node log handle). Without this the file
+        # descriptor leaks for the lifetime of the orchestrator; over a
+        # long session each new sim leaks 15 fds.
+        self._close_worker_log()
         self.node.stop(timeout=timeout)
+
+    def _close_worker_log(self) -> None:
+        f = self.worker_log_file
+        if f is None:
+            return
+        try:
+            f.close()
+        except Exception:
+            pass
+        self.worker_log_file = None
 
 
 class Spawner:
@@ -234,13 +261,17 @@ class Spawner:
             work_dir=work_dir,
             config_path=config_path,
             log_path=log_path,
+            log_file=log_file,
         )
 
         try:
             self._wait_ready(handle.api_url, deadline=time.time() + self.startup_timeout)
         except Exception as e:
+            # `handle.stop()` closes the log file via _close_log, so we do
+            # not need to close it again here. (Previously this path closed
+            # log_file twice, masking the real issue if the second close
+            # raised.)
             handle.stop()
-            log_file.close()
             raise SpawnerError(f"{spec.name} did not become ready: {e}") from e
 
         self._handles.append(handle)
@@ -311,6 +342,7 @@ class Spawner:
             role=role,
             sim_id=self.sim_id,
             worker_log_path=worker_log,
+            worker_log_file=worker_log_file,
         )
         self._roles.append(handle)
         return handle

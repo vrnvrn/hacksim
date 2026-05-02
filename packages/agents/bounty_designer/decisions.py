@@ -20,6 +20,8 @@ import os
 import re
 from typing import Any
 
+from packages.agents._anthropic import call_with_retry, make_client
+
 from .persona import SPONSORS, load_persona_text, sponsor_for_peer_id
 
 
@@ -96,19 +98,30 @@ def propose_bounty(
     sim_prompt: str,
     sender_peer_id: str,
     api_key: str | None = None,
+    emit: Any = None,
 ) -> dict[str, Any]:
     """Return one bounty payload as a dict matching the Bounty schema.
 
     Tries Anthropic SDK if `api_key` (or ANTHROPIC_API_KEY) is set; falls
     back to the deterministic stub otherwise. Caller broadcasts the
     return value as a `bounty.posted` envelope payload.
+
+    `emit`, when supplied, is the role worker's `state.emit` so SDK
+    failures land on the SSE stream as `decision.anthropic_failed` rather
+    than falling through silently.
     """
     key = api_key or os.environ.get("ANTHROPIC_API_KEY")
     if key:
         try:
-            return _propose_via_anthropic(sim_prompt=sim_prompt, sender_peer_id=sender_peer_id, api_key=key)
+            return _propose_via_anthropic(
+                sim_prompt=sim_prompt,
+                sender_peer_id=sender_peer_id,
+                api_key=key,
+                emit=emit,
+            )
         except Exception:
-            # Fall through to the stub on any SDK or parse failure.
+            # `_propose_via_anthropic` already emitted the structured
+            # failure event through `call_with_retry`; fall back to the stub.
             pass
     return _propose_stub(sim_prompt=sim_prompt, sender_peer_id=sender_peer_id)
 
@@ -147,14 +160,13 @@ def _propose_via_anthropic(
     sim_prompt: str,
     sender_peer_id: str,
     api_key: str,
+    emit: Any = None,
 ) -> dict[str, Any]:
     """Call Anthropic SDK to compose a bounty. Validates the JSON.
 
-    Lazy-imports `anthropic` so the module stays importable when the SDK
-    is not installed (CI uses the stub).
+    Lazy-imports `anthropic` via the shared helper so this module stays
+    importable when the SDK is missing (CI uses the stub).
     """
-    import anthropic
-
     sponsor = sponsor_for_peer_id(sender_peer_id)
     persona = load_persona_text()
     user_prompt = (
@@ -163,12 +175,16 @@ def _propose_via_anthropic(
         f"Compose exactly one bounty as JSON only."
     )
 
-    client = anthropic.Anthropic(api_key=api_key)
-    response = client.messages.create(
-        model=os.environ.get("HACKSIM_MODEL", "claude-haiku-4-5-20251001"),
-        max_tokens=512,
-        system=persona,
-        messages=[{"role": "user", "content": user_prompt}],
+    client = make_client(api_key)
+    response = call_with_retry(
+        lambda: client.messages.create(
+            model=os.environ.get("HACKSIM_MODEL", "claude-haiku-4-5-20251001"),
+            max_tokens=1024,
+            system=persona,
+            messages=[{"role": "user", "content": user_prompt}],
+        ),
+        operation="propose_bounty",
+        emit=emit,
     )
     text = "".join(block.text for block in response.content if hasattr(block, "text")).strip()
     return _parse_bounty_json(text, fallback_sponsor=sponsor["name"])

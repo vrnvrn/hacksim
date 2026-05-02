@@ -160,7 +160,7 @@ def _form_team(state: WorkerState) -> None:
         state.emit("builder.no_bounty", {"reason": "no bounty.posted envelopes received"})
         return
 
-    chosen = pick_bounty(bounties=bounties, skills=skills)
+    chosen = pick_bounty(bounties=bounties, skills=skills, emit=state.emit)
     if chosen is None:
         state.emit("builder.no_bounty", {"reason": "pick returned None"})
         return
@@ -239,6 +239,7 @@ def _build_and_submit(state: WorkerState) -> None:
             skills=skills,
             sender_peer_id=topo.our_public_key,
             sim_prompt=state.sim_prompt,  # type: ignore[attr-defined]
+            emit=state.emit,
         )
     except Exception as e:
         state.emit("builder.build_error", {"error": str(e)})
