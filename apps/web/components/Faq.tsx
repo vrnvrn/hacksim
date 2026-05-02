@@ -68,7 +68,7 @@ const ITEMS: Faq[] = [
           ed25519 keypair and its own ports. They peer through a single TLS
           bootstrap on <Code>127.0.0.1:9100</Code>.
         </P>
-        <P>Three AXL HTTP surfaces exercised by the running sim:</P>
+        <P>Four AXL HTTP surfaces exercised by the running sim:</P>
         <Ul>
           <li>
             <Code>GET /topology</Code> for peer discovery (the algorithm is
@@ -83,14 +83,23 @@ const ITEMS: Faq[] = [
             <Code>GET /recv</Code> to drain inbound envelopes from each
             role&rsquo;s queue.
           </li>
+          <li>
+            <Code>POST /mcp/{`{peer}`}/{`{service}`}</Code> for typed
+            JSON-RPC. The organiser confirms each judge&rsquo;s verdict
+            during the JUDGING phase by calling{" "}
+            <Code>tools/call score_project</Code> on the judge&rsquo;s
+            aiohttp router, which the destination AXL node forwards to
+            from the Yggdrasil tunnel.
+          </li>
         </Ul>
         <P>
-          AXL also ships <Code>/mcp/{`{peer}`}/{`{service}`}</Code> for
-          typed JSON-RPC across the mesh and{" "}
-          <Code>/a2a/{`{peer}`}</Code> for agent-to-agent streaming. We
-          do not exercise either in this submission; HackSim&rsquo;s
-          choreography rides envelopes end to end. Wiring MCP-based
-          judging is on the v2 list.
+          AXL also ships <Code>/a2a/{`{peer}`}</Code> for agent-to-agent
+          streaming. We do not exercise that surface in this submission;
+          HackSim&rsquo;s lifecycle is request/reply-shaped and adding
+          A2A would have been depth-of-integration cosmetic. See{" "}
+          <Code>docs/V2_MCP.md</Code> for the wire shape and the
+          integration test that proves the round trip across two real
+          AXL Go binaries.
         </P>
         <P>
           Every cross-agent envelope travels through the Yggdrasil mesh
