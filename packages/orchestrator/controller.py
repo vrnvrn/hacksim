@@ -188,6 +188,7 @@ class SimController:
                     role="judge",
                     index=i,
                     extra_env=self._extra_env or None,
+                    with_mcp_router=True,
                 ),
             )
             self._attach_tailer(handle, role="judge")

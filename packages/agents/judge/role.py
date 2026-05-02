@@ -9,11 +9,14 @@
 
 from __future__ import annotations
 
+import os
+
 from packages.agents._runtime import WorkerState, loop_until_closed
 from packages.protocol import Envelope, Phase, encode_envelope, make_envelope
 from packages.skills.hacksim_network.hacksim_network import SkillContext
 
 from .decisions import score_project
+from .mcp_service import McpService
 from .persona import (
     CRITERIA,
     archetype_for_peer_id,
@@ -33,7 +36,36 @@ def run(ctx: SkillContext) -> None:
     state.register("bounty.posted", _on_bounty_posted, gossip=True)
     state.register("project.submitted", _on_project_submitted, gossip=True)
     state.register("phase.tick", _on_phase_tick)
-    loop_until_closed(state)
+
+    # When the spawner allocated a router port for us, AXL will forward
+    # inbound /mcp/{our_peer}/judge requests to 127.0.0.1:<port>/route.
+    # Stand up the MCP service before entering the run loop so an early
+    # caller does not race the judge's startup. The persona (peer id) is
+    # not known until /topology resolves; query it here.
+    mcp_port_str = os.environ.get("HACKSIM_MCP_ROUTER_PORT")
+    mcp_service: McpService | None = None
+    if mcp_port_str:
+        try:
+            our_peer = state.client.get_topology().our_public_key
+        except Exception as e:
+            state.emit(
+                "mcp.service_start_failed",
+                {"reason": "topology unreachable", "error": str(e)},
+            )
+            our_peer = ""
+        if our_peer:
+            mcp_service = McpService(
+                judge_peer_id=our_peer,
+                port=int(mcp_port_str),
+                emit=state.emit,
+            )
+            mcp_service.start()
+
+    try:
+        loop_until_closed(state)
+    finally:
+        if mcp_service is not None:
+            mcp_service.stop()
 
 
 def _on_bounty_posted(state: WorkerState, env: Envelope) -> None:

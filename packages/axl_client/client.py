@@ -204,6 +204,57 @@ class AxlClient:
         ids.discard(ours)
         return list(ids)
 
+    # ----------------------------------------------------------------- mcp_call
+
+    def mcp_call(
+        self,
+        peer_id: str,
+        service: str,
+        json_rpc_body: dict[str, Any],
+        *,
+        timeout: float | None = None,
+    ) -> dict[str, Any]:
+        """POST a JSON-RPC request to `/mcp/{peer_id}/{service}` and return the inner reply.
+
+        AXL's MCP bridge wraps the JSON-RPC body in an `MCPMessage` envelope,
+        forwards it over the Yggdrasil-routed TCP listener to the destination
+        peer's TCP port, where the MCP stream side-car POSTs `{service,
+        request, from_peer_id}` to the configured router URL. The router runs
+        the service handler, responds with `{response, error}`, the envelope
+        travels back, and the bridge unwraps it for us. We see the inner
+        JSON-RPC reply.
+
+        Raises AxlError on non-200 from the bridge or on any malformed reply
+        the bridge surfaces. Caller is responsible for matching `id` between
+        request and response.
+        """
+        body = json.dumps(json_rpc_body).encode("utf-8")
+        headers = {
+            "Content-Type": "application/json",
+            "Accept": "application/json, text/event-stream",
+        }
+        status, _, resp_body = _post(
+            f"{self.api_url}/mcp/{peer_id}/{service}",
+            data=body,
+            headers=headers,
+            timeout=timeout if timeout is not None else self.timeout,
+        )
+        if status != 200:
+            raise AxlError(
+                f"POST /mcp/{peer_id[:8]}/{service} returned {status}",
+                status=status,
+                body=resp_body,
+            )
+        try:
+            obj = json.loads(resp_body.decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError) as e:
+            raise AxlError(
+                f"/mcp/{peer_id[:8]}/{service} body was not valid UTF-8 JSON"
+            ) from e
+        if not isinstance(obj, dict):
+            raise AxlError("/mcp response was not a JSON object")
+        return obj
+
     # ---------------------------------------------------------------------- recv
 
     def recv(self) -> ReceivedMessage | None:

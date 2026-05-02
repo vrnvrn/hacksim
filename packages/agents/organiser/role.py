@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import os
 import time
+import uuid
 
 from packages.agents._runtime import WorkerState, loop_until_closed
 from packages.protocol import Envelope, Phase, encode_envelope, make_envelope
@@ -30,14 +31,17 @@ def run(ctx: SkillContext) -> None:
     state.projects = {}  # type: ignore[attr-defined]
     state.verdicts = {}  # type: ignore[attr-defined]
     state.closed_emitted = False  # type: ignore[attr-defined]
+    state.judges = {}  # type: ignore[attr-defined]
+    state.bounties = {}  # type: ignore[attr-defined]
+    state.mcp_called = set()  # type: ignore[attr-defined]
 
     # The organiser is the bootstrap, so every other role connects to it
     # directly. That makes it the natural relay: registering gossip=True for
     # every envelope type that needs broad propagation closes the gap when
     # role-to-role topology is sparse.
-    state.register("bounty.posted", _on_relay_only, gossip=True)
+    state.register("bounty.posted", _on_bounty_posted, gossip=True)
     state.register("team.formed", _on_relay_only, gossip=True)
-    state.register("rubric.published", _on_relay_only, gossip=True)
+    state.register("rubric.published", _on_rubric_published, gossip=True)
     state.register("project.submitted", _on_project_submitted, gossip=True)
     state.register("verdict.published", _on_verdict_published, gossip=True)
 
@@ -83,6 +87,21 @@ def _on_relay_only(state: WorkerState, env: Envelope) -> None:
     return None
 
 
+def _on_bounty_posted(state: WorkerState, env: Envelope) -> None:
+    """Track bounties so the MCP score call carries the right qualification list."""
+    bid = str(env["payload"].get("id") or "")
+    if bid and bid not in state.bounties:  # type: ignore[attr-defined]
+        state.bounties[bid] = env["payload"]  # type: ignore[attr-defined]
+
+
+def _on_rubric_published(state: WorkerState, env: Envelope) -> None:
+    """Track judge identities so the organiser can call them via MCP later."""
+    payload = env["payload"]
+    judge = str(payload.get("judge_peer_id") or env["sender_id"])
+    if judge and judge not in state.judges:  # type: ignore[attr-defined]
+        state.judges[judge] = payload  # type: ignore[attr-defined]
+
+
 def _on_project_submitted(state: WorkerState, env: Envelope) -> None:
     pid = str(env["payload"].get("project_id") or env["payload"].get("id") or "")
     if pid and pid not in state.projects:  # type: ignore[attr-defined]
@@ -98,6 +117,113 @@ def _on_verdict_published(state: WorkerState, env: Envelope) -> None:
     if judge in by_proj:
         return  # dedupe by judge per project
     by_proj[judge] = env["payload"]
+    # Schedule one MCP confirmation per (judge, project) shortly after
+    # the envelope verdict lands. The MCP call exercises the typed
+    # JSON-RPC surface and emits mcp.score_received so the run log shows
+    # the round trip happening live. We tolerate state objects built
+    # outside `run()` (some tests do) by lazily initialising the dedupe
+    # set and the project/bounty lookups.
+    mcp_called = getattr(state, "mcp_called", None)
+    if mcp_called is None:
+        mcp_called = set()
+        state.mcp_called = mcp_called  # type: ignore[attr-defined]
+    key = (judge, pid)
+    if key in mcp_called:
+        return
+    mcp_called.add(key)
+    projects = getattr(state, "projects", {}) or {}
+    project = projects.get(pid)
+    if not project:
+        return
+    bounties = getattr(state, "bounties", {}) or {}
+    bounty = bounties.get(str(project.get("bounty_id") or ""))
+    state.schedule(
+        lambda s, j=judge, p=project, b=bounty: _confirm_via_mcp(s, j, p, b),
+        delay=0.5,
+    )
+
+
+def _confirm_via_mcp(
+    state: WorkerState,
+    judge_peer_id: str,
+    project: dict,
+    bounty: dict | None,
+) -> None:
+    """Round-trip the verdict through `/mcp/{judge}/judge` for proof of
+    typed JSON-RPC across the mesh.
+
+    The result here matches the envelope-based verdict the judge already
+    broadcast; the MCP path is supplemental, not the source of truth. We
+    surface the round trip on the SSE stream as `mcp.score_requested`
+    and `mcp.score_received` so a viewer can watch the typed surface
+    fire without reading the JSON-RPC body.
+    """
+    pid = str(project.get("project_id") or project.get("id") or "")
+    rpc_id = uuid.uuid4().hex[:12]
+    rpc_body = {
+        "jsonrpc": "2.0",
+        "id": rpc_id,
+        "method": "tools/call",
+        "params": {
+            "name": "score_project",
+            "arguments": {"project": project, "bounty": bounty or {}},
+        },
+    }
+    started = time.monotonic()
+    state.emit(
+        "mcp.score_requested",
+        {
+            "judge_peer_id": judge_peer_id,
+            "project_id": pid,
+            "rpc_id": rpc_id,
+        },
+    )
+    try:
+        reply = state.client.mcp_call(judge_peer_id, "judge", rpc_body, timeout=15.0)
+    except Exception as e:
+        state.emit(
+            "mcp.score_failed",
+            {
+                "judge_peer_id": judge_peer_id,
+                "project_id": pid,
+                "rpc_id": rpc_id,
+                "error_class": type(e).__name__,
+                "error": str(e)[:200],
+            },
+        )
+        return
+
+    elapsed_ms = int((time.monotonic() - started) * 1000)
+    inner = reply.get("response") or {}
+    err = inner.get("error")
+    if err:
+        state.emit(
+            "mcp.score_failed",
+            {
+                "judge_peer_id": judge_peer_id,
+                "project_id": pid,
+                "rpc_id": rpc_id,
+                "error": str(err.get("message") or err)[:200],
+            },
+        )
+        return
+    result = inner.get("result") or {}
+    structured = (
+        result.get("structuredContent")
+        if isinstance(result, dict)
+        else None
+    )
+    total = (structured or {}).get("total")
+    state.emit(
+        "mcp.score_received",
+        {
+            "judge_peer_id": judge_peer_id,
+            "project_id": pid,
+            "rpc_id": rpc_id,
+            "elapsed_ms": elapsed_ms,
+            "total": total,
+        },
+    )
 
 
 def _close_hackathon(state: WorkerState) -> None:

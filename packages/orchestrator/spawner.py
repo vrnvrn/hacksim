@@ -44,6 +44,7 @@ DEFAULT_BOOTSTRAP_LISTEN = "tls://127.0.0.1:9100"
 DEFAULT_API_PORT_BASE = 9200
 DEFAULT_TCP_PORT = 7000
 DEFAULT_STARTUP_TIMEOUT = 30.0
+DEFAULT_MCP_ROUTER_PORT_BASE = 9400
 
 
 class SpawnerError(RuntimeError):
@@ -56,6 +57,12 @@ class NodeSpec:
 
     `name` is the human label used for files and logs (e.g. "organiser",
     "designer.0", "builder.4"). It must be filesystem-safe.
+
+    `mcp_router_port`, when set, configures this node's AXL binary to
+    forward inbound `/mcp/{peer}/{service}` requests to a local Python
+    MCP service running on `127.0.0.1:<mcp_router_port>/route`. Judges
+    use this to expose typed JSON-RPC scoring without relinquishing the
+    envelope-based control plane.
     """
 
     name: str
@@ -63,6 +70,7 @@ class NodeSpec:
     api_port: int | None = None  # auto-allocated if None
     tcp_port: int = DEFAULT_TCP_PORT
     listen_uri: str | None = None  # auto-set to bootstrap URI when is_bootstrap
+    mcp_router_port: int | None = None
 
 
 @dataclass
@@ -78,6 +86,7 @@ class NodeHandle:
     config_path: Path
     log_path: Path
     log_file: Any = None
+    mcp_router_port: int | None = None
 
     @property
     def api_url(self) -> str:
@@ -178,6 +187,7 @@ class Spawner:
         axl_bin: Path,
         bootstrap_listen: str = DEFAULT_BOOTSTRAP_LISTEN,
         api_port_base: int = DEFAULT_API_PORT_BASE,
+        mcp_router_port_base: int = DEFAULT_MCP_ROUTER_PORT_BASE,
         startup_timeout: float = DEFAULT_STARTUP_TIMEOUT,
         python_bin: str | None = None,
         sim_id: str = "sim_default",
@@ -190,6 +200,7 @@ class Spawner:
         self.axl_bin = axl_bin
         self.bootstrap_listen = bootstrap_listen
         self.api_port_base = api_port_base
+        self.mcp_router_port_base = mcp_router_port_base
         self.startup_timeout = startup_timeout
         self.python_bin = python_bin or _find_python()
         self.sim_id = sim_id
@@ -200,6 +211,7 @@ class Spawner:
         self._handles: list[NodeHandle] = []
         self._roles: list[RoleHandle] = []
         self._next_port = api_port_base
+        self._next_mcp_port = mcp_router_port_base
         self._bootstrap_seen = False
 
         if not self.base_dir.exists():
@@ -228,13 +240,20 @@ class Spawner:
         key_path = work_dir / f"{spec.name}.pem"
         self._keygen(key_path)
 
-        config = {
+        config: dict[str, Any] = {
             "PrivateKeyPath": str(key_path),
             "Peers": peers,
             "Listen": [listen_uri] if listen_uri else [],
             "api_port": api_port,
             "tcp_port": spec.tcp_port,
         }
+        if spec.mcp_router_port is not None:
+            # AXL forwards inbound /mcp/{peer}/{service} traffic to
+            # http://<router_addr>:<router_port>/route. We always run
+            # the router locally so the address is fixed; the port is
+            # spawner-allocated to avoid collisions on the loopback.
+            config["router_addr"] = "http://127.0.0.1"
+            config["router_port"] = spec.mcp_router_port
         config_path = work_dir / f"{spec.name}-config.json"
         config_path.write_text(json.dumps(config, indent=2))
 
@@ -262,6 +281,7 @@ class Spawner:
             config_path=config_path,
             log_path=log_path,
             log_file=log_file,
+            mcp_router_port=spec.mcp_router_port,
         )
 
         try:
@@ -289,6 +309,7 @@ class Spawner:
         is_bootstrap: bool = False,
         repo_root: Path | None = None,
         extra_env: dict[str, str] | None = None,
+        with_mcp_router: bool = False,
     ) -> RoleHandle:
         """Boot one AXL node + one Python role worker process.
 
@@ -303,7 +324,16 @@ class Spawner:
         process env.
         """
         name = role if index == 0 and is_bootstrap else f"{role}.{index}"
-        node = self.spawn(NodeSpec(name=name, is_bootstrap=is_bootstrap))
+        mcp_router_port: int | None = None
+        if with_mcp_router:
+            mcp_router_port = self._allocate_mcp_router_port()
+        node = self.spawn(
+            NodeSpec(
+                name=name,
+                is_bootstrap=is_bootstrap,
+                mcp_router_port=mcp_router_port,
+            )
+        )
 
         repo_root = repo_root or _find_repo_root()
         env = {
@@ -314,6 +344,11 @@ class Spawner:
             "HACKSIM_WORK_DIR": str(node.work_dir),
             "PYTHONPATH": f"{repo_root}{os.pathsep}{os.environ.get('PYTHONPATH', '')}".rstrip(os.pathsep),
         }
+        if mcp_router_port is not None:
+            # The role worker reads HACKSIM_MCP_ROUTER_PORT and starts the
+            # MCP service on that port if it knows how (judges do; other
+            # roles ignore it).
+            env["HACKSIM_MCP_ROUTER_PORT"] = str(mcp_router_port)
         if self.orch_url:
             env["HACKSIM_ORCH_URL"] = self.orch_url
         if extra_env:
@@ -396,6 +431,20 @@ class Spawner:
                 return candidate
             candidate += 1
         raise SpawnerError(f"could not allocate a free port near {self._next_port}")
+
+    def _allocate_mcp_router_port(self) -> int:
+        """Hand out the next free MCP router port, kept on a separate
+        block from the API ports so a stale loopback bind does not
+        cascade into both pools."""
+        candidate = self._next_mcp_port
+        for _ in range(64):
+            if _port_is_free(candidate):
+                self._next_mcp_port = candidate + 1
+                return candidate
+            candidate += 1
+        raise SpawnerError(
+            f"could not allocate a free MCP router port near {self._next_mcp_port}"
+        )
 
 
 # ---------------------------------------------------------------------- helpers

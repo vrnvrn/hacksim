@@ -64,7 +64,12 @@ def _drain_until(client: AxlClient, predicate, deadline: float, log_path=None):
 
 
 def test_two_axl_nodes_exchange_one_envelope(tmp_path):
-    bootstrap_uri = "tls://127.0.0.1:9100"
+    # Use kernel-assigned free ports for the bootstrap and the bridge so a
+    # leftover AXL process from a prior failed run cannot squat on a fixed
+    # port and silently break this test.
+    from ._axl_node import _free_port
+
+    bootstrap_uri = f"tls://127.0.0.1:{_free_port()}"
 
     alice_dir = tmp_path / "alice"
     bob_dir = tmp_path / "bob"
@@ -77,13 +82,13 @@ def test_two_axl_nodes_exchange_one_envelope(tmp_path):
     with axl_node(
         name="alice",
         work_dir=alice_dir,
-        api_port=9202,
+        api_port=_free_port(),
         tcp_port=7000,
         listen_uri=bootstrap_uri,
     ) as alice, axl_node(
         name="bob",
         work_dir=bob_dir,
-        api_port=9212,
+        api_port=_free_port(),
         tcp_port=7000,
         peers=[bootstrap_uri],
     ) as bob:

@@ -101,8 +101,15 @@ def axl_node(
     listen_uri: str | None = None,
     peers: list[str] | None = None,
     startup_timeout: float = 30.0,
+    mcp_router_addr: str | None = None,
+    mcp_router_port: int | None = None,
 ) -> Iterator[NodeHandle]:
-    """Boot one AXL node subprocess. Yields a NodeHandle. Always stops on exit."""
+    """Boot one AXL node subprocess. Yields a NodeHandle. Always stops on exit.
+
+    `mcp_router_addr` plus `mcp_router_port` configure the AXL binary to
+    forward inbound `/mcp/{peer}/{service}` traffic to that local URL,
+    used by the MCP integration test.
+    """
     if not axl_binary_available():
         raise RuntimeError(f"AXL binary missing at {AXL_BIN}; run scripts/build_axl.sh")
 
@@ -110,13 +117,16 @@ def axl_node(
     key_path = work_dir / f"{name}.pem"
     _gen_ed25519_pem(key_path)
 
-    config = {
+    config: dict = {
         "PrivateKeyPath": str(key_path),
         "Peers": list(peers or []),
         "Listen": [listen_uri] if listen_uri else [],
         "api_port": api_port,
         "tcp_port": tcp_port,
     }
+    if mcp_router_addr is not None and mcp_router_port is not None:
+        config["router_addr"] = mcp_router_addr
+        config["router_port"] = mcp_router_port
     config_path = work_dir / f"{name}-config.json"
     config_path.write_text(json.dumps(config, indent=2))
 
