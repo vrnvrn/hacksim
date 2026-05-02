@@ -3,9 +3,12 @@ import { render, screen } from "@testing-library/react";
 import { Nav } from "./Nav";
 
 describe("Nav", () => {
-  it("renders the wordmark and three primary links", () => {
+  it("renders the wordmark and four primary links", () => {
     render(<Nav />);
     expect(screen.getByLabelText("HackSim home")).toBeInTheDocument();
+    const agentSetup = screen.getByRole("link", { name: /agent setup/i });
+    expect(agentSetup).toBeInTheDocument();
+    expect(agentSetup).toHaveAttribute("href", "/agent-setup");
     expect(screen.getByRole("link", { name: /examples/i })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /docs/i })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /github/i })).toBeInTheDocument();
