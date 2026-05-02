@@ -69,6 +69,29 @@ class TestReplayList:
         ids = [e["run_id"] for e in body["replays"]]
         assert ids == ["sim_real"]
 
+    def test_skips_pre_recorder_sim_directories(self, client):
+        """A sim directory created before the Recorder shipped (commit 66)
+        will have role workdirs and project artefacts but no events.jsonl.
+        The listing must hide these so the frontend never offers a replay
+        link that 404s on the snapshot endpoint."""
+        c, base = client
+        # Shape mirrors what survives in sim-runs from pre-recorder runs:
+        # one role workdir per agent, a projects/ tree, role .log and
+        # .pem files, but no events.jsonl at the sim root.
+        legacy = base / "sim_2026_pre_recorder"
+        legacy.mkdir()
+        for role in ("organiser", "judge.0", "builder.0"):
+            d = legacy / role
+            d.mkdir()
+            (d / f"{role}.log").write_text("legacy log\n", encoding="utf-8")
+            (d / "key.pem").write_text("-----BEGIN-----\n", encoding="utf-8")
+        (legacy / "projects").mkdir()
+        _write_recording(base, "sim_real_with_recording")
+
+        body = c.get("/api/replay").json()
+        ids = [e["run_id"] for e in body["replays"]]
+        assert ids == ["sim_real_with_recording"]
+
 
 class TestReplaySnapshot:
     def test_returns_404_for_unknown_recording(self, client):

@@ -513,6 +513,12 @@ def create_app(
         and `duration_s` so the frontend can render a small picker
         without parsing every line of every recording. Reading the meta
         line plus the file size is enough to populate the list cheaply.
+
+        Directories without an `events.jsonl` are silently skipped. This
+        covers two real cases: half-spawned sims that crashed before any
+        event was published, and pre-recorder sim directories left over
+        from before commit 66 added the Recorder. See
+        `test_skips_pre_recorder_sim_directories` for the regression.
         """
         base = FsPath(app.state.base_dir)
         entries: list[dict] = []
