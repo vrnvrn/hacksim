@@ -2,8 +2,9 @@
 
 - Listen for `bounty.posted`, accumulate.
 - On `phase.tick` to TEAM_FORMATION, pick the best bounty for our
-  skills and broadcast `team.formed` (solo team for now; multi-builder
-  team formation is a stretch).
+  skills and broadcast `team.formed` as a solo team (one builder per
+  team). Multi-builder team formation is out of scope for this
+  submission.
 - On `phase.tick` to BUILD, write the project artefact, git commit,
   broadcast `project.submitted`.
 """

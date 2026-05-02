@@ -120,7 +120,6 @@ class TestIsKnownEvent:
         "evt",
         [
             "bounty.posted",
-            "team.forming",
             "team.formed",
             "project.submitted",
             "rubric.published",

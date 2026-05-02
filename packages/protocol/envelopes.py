@@ -8,7 +8,7 @@ Wire shape:
 
     {
         "proto":     1,
-        "type":      "bounty.posted" | "team.forming" | ... ,
+        "type":      "bounty.posted" | "team.formed" | ... ,
         "round":     0..4,                # phase counter
         "sender_id": "<64 hex chars>",    # peer id
         "timestamp": 1714305735.123,      # unix seconds, float
@@ -42,7 +42,6 @@ class Phase:
 
 EventType = Literal[
     "bounty.posted",
-    "team.forming",
     "team.formed",
     "project.submitted",
     "rubric.published",
@@ -55,7 +54,6 @@ EventType = Literal[
 _KNOWN_EVENTS: frozenset[str] = frozenset(
     [
         "bounty.posted",
-        "team.forming",
         "team.formed",
         "project.submitted",
         "rubric.published",

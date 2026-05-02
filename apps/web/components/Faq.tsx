@@ -122,7 +122,7 @@ const ITEMS: Faq[] = [
           envelope type and adopt each other&rsquo;s improvements. HackSim
           has four typed roles (organiser, bounty designer, builder,
           judge) in a phased lifecycle (bounty design, team formation,
-          build, judging, showcase) and eight envelope types. We borrow
+          build, judging, showcase) and seven envelope types. We borrow
           the broadcast loop and the topology dedup pattern verbatim from{" "}
           <Code>research_network.py</Code>; the role differentiation,
           phase choreography, artefact pipeline, and showcase modal are

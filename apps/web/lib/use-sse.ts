@@ -81,7 +81,6 @@ export function useSse(
       "bounty.broadcast",
       "designer.composing",
       "designer.heard_prompt",
-      "team.forming",
       "team.formed",
       "team.broadcast",
       "builder.registered",

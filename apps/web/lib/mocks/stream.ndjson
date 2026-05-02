@@ -5,7 +5,6 @@
 {"type":"bounty.posted","ts":"2026-04-28T12:04:00Z","from":"4444444444444444444444444444444444444444444444444444444444444444","data":{"bounty_id":"bnty_judging","title":"Show the judging"}}
 {"type":"bounty.posted","ts":"2026-04-28T12:05:00Z","from":"5555555555555555555555555555555555555555555555555555555555555555","data":{"bounty_id":"bnty_oss","title":"Best open-source contribution"}}
 {"type":"phase.tick","ts":"2026-04-28T12:06:00Z","from":"organiser","data":{"phase":2,"label":"building"}}
-{"type":"team.forming","ts":"2026-04-28T12:07:00Z","from":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","data":{"bounty_id":"bnty_visualisation"}}
 {"type":"team.formed","ts":"2026-04-28T12:08:00Z","from":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","data":{"team_id":"team_alpha","bounty_id":"bnty_visualisation"}}
 {"type":"team.formed","ts":"2026-04-28T12:09:00Z","from":"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc","data":{"team_id":"team_beta","bounty_id":"bnty_permits"}}
 {"type":"team.formed","ts":"2026-04-28T12:10:00Z","from":"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee","data":{"team_id":"team_gamma","bounty_id":"bnty_play"}}
