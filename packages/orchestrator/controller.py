@@ -30,9 +30,10 @@ from packages.agents.builder.persona import (
 
 from .artefacts import ArtefactStore
 from .log_tailer import LogTailer
+from .recorder import Recorder
 from .snapshot import apply_event, empty_snapshot
 from .spawner import NodeSpec, Spawner
-from .sse import SseHub
+from .sse import Event, SseHub
 
 
 @dataclass
@@ -65,6 +66,7 @@ class SimController:
         artefacts: ArtefactStore | None = None,
         spawner: Spawner | None = None,
         extra_env: dict[str, str] | None = None,
+        record: bool = True,
     ):
         self.sim_id = sim_id
         self.prompt = prompt
@@ -92,6 +94,12 @@ class SimController:
         )
         self._tailers: list[LogTailer] = []
         self._running = False
+        # Recording wiring: the recorder mirrors every hub.publish into a
+        # JSONL file under sim-runs/<sim_id>/events.jsonl so the
+        # /api/replay/<sim_id> route can stream the run back later.
+        self._record_enabled = record
+        self._recorder: Recorder | None = None
+        self._record_listener = None  # type: ignore[var-annotated]
 
     @property
     def snapshot(self) -> dict:
@@ -120,6 +128,11 @@ class SimController:
         # process picks up its own pace instead of inheriting the first
         # sim's value.
         os.environ["HACKSIM_PACE"] = self.config.pace
+
+        # Start recording before any event is published so the JSONL
+        # file captures sim.created and the axl.binary health record.
+        if self._record_enabled:
+            self._open_recorder()
 
         # Publish an axl.binary event before any spawn fires. Captures
         # the binary path, size, and mtime so the run log shows which
@@ -225,6 +238,9 @@ class SimController:
         self._tailers.clear()
         loop = asyncio.get_event_loop()
         await loop.run_in_executor(None, self._spawner.stop_all)
+        # Close the recorder after the last tailer drains so the final
+        # worker.stopped events make it onto disk.
+        self._close_recorder()
         self._running = False
 
     # ---------------------------------------------------------------- internals
@@ -255,6 +271,48 @@ class SimController:
         except Exception:
             pass
         self._on_event(event_type, payload)
+
+    def _open_recorder(self) -> None:
+        """Attach a Recorder to this sim's hub channel. Best-effort: a
+        filesystem failure must not crash the run. The recorder writes
+        to sim-runs/<sim_id>/events.jsonl by default."""
+        try:
+            path = self.base_dir / "events.jsonl"
+            self._recorder = Recorder(path=path)
+            self._recorder.open(
+                meta={
+                    "sim_id": self.sim_id,
+                    "prompt": self.prompt,
+                    "started_at": self._snapshot["created_at"],
+                    "config": _config_to_dict(self.config),
+                }
+            )
+            recorder = self._recorder
+
+            def _on_publish(evt: Event) -> None:
+                recorder.record(evt.type, evt.data)
+
+            self._record_listener = _on_publish
+            self.hub.add_publish_listener(self.sim_id, _on_publish)
+        except Exception:
+            # Recording is non-load-bearing for a live run; if the
+            # filesystem is hostile we keep going without it.
+            self._recorder = None
+            self._record_listener = None
+
+    def _close_recorder(self) -> None:
+        if self._record_listener is not None:
+            try:
+                self.hub.remove_publish_listener(self.sim_id, self._record_listener)
+            except Exception:
+                pass
+            self._record_listener = None
+        if self._recorder is not None:
+            try:
+                self._recorder.close()
+            except Exception:
+                pass
+            self._recorder = None
 
     def _publish_axl_binary_health(self) -> None:
         """Emit an axl.binary event capturing path, size, and mtime so the

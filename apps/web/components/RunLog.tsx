@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronDown, ChevronUp, Pause, Play } from "lucide-react";
+import type { ApiMode } from "@/lib/api";
 import { useSse } from "@/lib/use-sse";
 import type { Envelope } from "@/lib/types";
 import { cn } from "@/lib/cn";
@@ -51,8 +52,15 @@ function summarise(env: Envelope): string {
 // envelope, auto-scrolls unless the user has scrolled up. A pause toggle
 // freezes the view without dropping events. On mobile (sm and below) the
 // pane collapses by default to a single header row so the SubmissionsGrid
-// is reachable without scrolling past 80vh of run log.
-export function RunLog({ simId }: { simId: string }) {
+// is reachable without scrolling past 80vh of run log. `mode` switches
+// between live and replay endpoints.
+export function RunLog({
+  simId,
+  mode = "live",
+}: {
+  simId: string;
+  mode?: ApiMode;
+}) {
   const [lines, setLines] = useState<Envelope[]>([]);
   const [paused, setPaused] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
@@ -79,7 +87,7 @@ export function RunLog({ simId }: { simId: string }) {
     });
   }, []);
 
-  const { connected } = useSse(simId, onEvent);
+  const { connected } = useSse(simId, onEvent, mode);
 
   useEffect(() => {
     const node = containerRef.current;
@@ -107,11 +115,13 @@ export function RunLog({ simId }: { simId: string }) {
       <header className="flex items-center justify-between px-4 py-2 border-b border-white/10">
         <span className="text-[11px] uppercase tracking-wide text-canvas/70 flex items-center gap-2">
           Run log
-          {HOSTED_REPLAY
+          {mode === "replay"
             ? " · replay"
-            : connected
-              ? " · live"
-              : " · offline"}
+            : HOSTED_REPLAY
+              ? " · replay"
+              : connected
+                ? " · live"
+                : " · offline"}
           {collapsed && lines.length > 0 ? (
             <span className="text-canvas/50">
               ({lines.length} event{lines.length === 1 ? "" : "s"})

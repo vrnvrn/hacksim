@@ -4,15 +4,25 @@
 
 import type { Project, ProjectFile, Snapshot } from "./types";
 
+export type ApiMode = "live" | "replay";
+
 export const useMocks = () => process.env.NEXT_PUBLIC_USE_MOCKS === "true";
 
-export function snapshotUrl(simId: string): string {
+export function snapshotUrl(simId: string, mode: ApiMode = "live"): string {
+  if (mode === "replay") {
+    return `/api/replay/${encodeURIComponent(simId)}/snapshot`;
+  }
   return useMocks()
     ? `/api/mocks/snapshot?id=${encodeURIComponent(simId)}`
     : `/api/sim/${encodeURIComponent(simId)}/snapshot`;
 }
 
-export function streamUrl(simId: string): string {
+export function streamUrl(simId: string, mode: ApiMode = "live"): string {
+  if (mode === "replay") {
+    // 4x default keeps a five-minute run inside ~75 seconds of viewing
+    // time without making the SSE handlers race the snapshot accumulator.
+    return `/api/replay/${encodeURIComponent(simId)}/stream?speed=4`;
+  }
   return useMocks()
     ? `/api/mocks/stream?id=${encodeURIComponent(simId)}`
     : `/api/sim/${encodeURIComponent(simId)}/stream`;

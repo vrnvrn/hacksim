@@ -38,6 +38,8 @@ from pydantic import BaseModel, Field, SecretStr
 from .artefacts import CSP_HEADER, ArtefactError, ArtefactStore
 from .controller import SimConfig as ControllerConfig
 from .controller import SimController
+from .recorder import read_recording
+from .snapshot import apply_events, empty_snapshot
 from .sse import SseHub
 
 
@@ -484,6 +486,161 @@ def create_app(
                 "Cache-Control": "private, max-age=60",
                 "X-Content-Type-Options": "nosniff",
             },
+        )
+
+    # ------------------------------------------------------------------ replay
+
+    def _replay_path(run_id: str) -> FsPath:
+        """Resolve a recording path under base_dir, refusing path-escape."""
+        if not run_id or "/" in run_id or ".." in run_id:
+            raise HTTPException(status_code=404, detail="unknown recording")
+        base = FsPath(app.state.base_dir)
+        candidate = base / run_id / "events.jsonl"
+        try:
+            resolved = candidate.resolve()
+            base_resolved = base.resolve()
+            if not str(resolved).startswith(str(base_resolved) + os.sep) and resolved != base_resolved:
+                raise HTTPException(status_code=404, detail="unknown recording")
+        except (OSError, RuntimeError):
+            raise HTTPException(status_code=404, detail="unknown recording") from None
+        return candidate
+
+    @app.get("/api/replay")
+    def list_replays():
+        """List every recording on disk under base_dir.
+
+        Each entry carries `run_id`, `prompt`, `started_at`, `events`,
+        and `duration_s` so the frontend can render a small picker
+        without parsing every line of every recording. Reading the meta
+        line plus the file size is enough to populate the list cheaply.
+        """
+        base = FsPath(app.state.base_dir)
+        entries: list[dict] = []
+        if not base.exists():
+            return {"replays": entries}
+        for child in sorted(base.iterdir()):
+            events_file = child / "events.jsonl"
+            if not events_file.is_file():
+                continue
+            try:
+                meta, evs = read_recording(events_file)
+            except (FileNotFoundError, ValueError):
+                continue
+            duration = round(evs[-1]["t"], 2) if evs else 0.0
+            entries.append(
+                {
+                    "run_id": child.name,
+                    "prompt": meta.get("prompt", ""),
+                    "started_at": meta.get("started_at", ""),
+                    "events": len(evs),
+                    "duration_s": duration,
+                }
+            )
+        return {"replays": entries}
+
+    @app.get("/api/replay/{run_id}/snapshot")
+    def replay_snapshot(run_id: Annotated[str, Path(min_length=1, max_length=64)]):
+        """Return the final snapshot accumulated from a recorded run.
+
+        Same shape as `/api/sim/<id>/snapshot` so the frontend can swap
+        endpoints without other changes. Useful as the initial-state
+        fetch before subscribing to `/api/replay/<id>/stream`.
+        """
+        path = _replay_path(run_id)
+        try:
+            meta, events = read_recording(path)
+        except FileNotFoundError:
+            raise HTTPException(status_code=404, detail="unknown recording") from None
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e)) from e
+
+        snap = empty_snapshot(
+            sim_id=meta.get("sim_id", run_id),
+            prompt=meta.get("prompt", ""),
+            config=meta.get("config", {}),
+            created_at=meta.get("started_at", ""),
+        )
+        snap = apply_events(snap, [(e["type"], e["data"]) for e in events])
+        return snap
+
+    @app.get("/api/replay/{run_id}/stream")
+    async def replay_stream(
+        run_id: Annotated[str, Path(min_length=1, max_length=64)],
+        request: Request,
+        speed: Annotated[float, Query(ge=0.1, le=100.0)] = 4.0,
+    ):
+        """Stream a recorded run as SSE, honouring the original timing.
+
+        `speed` defaults to 4x so a five-minute run finishes in ~75
+        seconds. Set `speed=1` for original cadence; `speed=0.1` for a
+        slow walk; the upper bound of 100x effectively flushes the
+        whole recording without sleeping.
+        """
+        path = _replay_path(run_id)
+        try:
+            meta, events = read_recording(path)
+        except FileNotFoundError:
+            raise HTTPException(status_code=404, detail="unknown recording") from None
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e)) from e
+
+        async def gen():
+            # Open with a synthetic sim.created so the client UI sees a
+            # familiar lead-in even if the original recording started
+            # mid-sim. The frontend already tolerates duplicate
+            # sim.created events (apply_event clamps the snapshot to the
+            # same shape).
+            from .sse import Event as SseEvent
+
+            seq = 1
+            yield SseEvent(
+                seq=seq,
+                type="replay.started",
+                data={
+                    "run_id": run_id,
+                    "speed": speed,
+                    "events_total": len(events),
+                    "duration_s": round(events[-1]["t"], 2) if events else 0.0,
+                    "prompt": meta.get("prompt", ""),
+                },
+                sim_id=run_id,
+            ).to_sse_bytes()
+            seq += 1
+
+            last_t = 0.0
+            for evt in events:
+                if await request.is_disconnected():
+                    return
+                target = evt["t"]
+                delay = max(0.0, (target - last_t) / max(speed, 0.001))
+                # Clamp very long inter-event gaps so a quiet phase does
+                # not stall the replay for the viewer.
+                if delay > 5.0:
+                    delay = 5.0
+                if delay > 0:
+                    await asyncio.sleep(delay)
+                last_t = target
+                yield SseEvent(
+                    seq=seq,
+                    type=str(evt["type"]),
+                    data=dict(evt["data"]),
+                    sim_id=run_id,
+                ).to_sse_bytes()
+                seq += 1
+
+            # One terminal event so the frontend knows the recording
+            # finished cleanly (vs the connection dropping).
+            yield SseEvent(
+                seq=seq,
+                type="replay.finished",
+                data={"run_id": run_id, "events_total": len(events)},
+                sim_id=run_id,
+            ).to_sse_bytes()
+
+        return StreamingResponse(
+            gen(),
+            media_type="text/event-stream",
+            headers={"Cache-Control": "no-cache, no-transform", "X-Accel-Buffering": "no"},
         )
 
     @app.get("/api/health")

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { streamUrl } from "./api";
+import { type ApiMode, streamUrl } from "./api";
 import type { Envelope } from "./types";
 
 export type UseSseResult = {
@@ -11,10 +11,12 @@ export type UseSseResult = {
 // One EventSource per page. The caller passes a stable `onEvent` callback
 // (memoised with useCallback). Reconnection is delegated to the browser; the
 // orchestrator buffers the last 2000 envelopes per sim so reopening picks up
-// where we left off via Last-Event-ID.
+// where we left off via Last-Event-ID. `mode` switches between live
+// (`/api/sim/.../stream`) and replay (`/api/replay/.../stream`).
 export function useSse(
   simId: string,
   onEvent: (env: Envelope) => void,
+  mode: ApiMode = "live",
 ): UseSseResult {
   const [connected, setConnected] = useState(false);
   const onEventRef = useRef(onEvent);
@@ -22,7 +24,7 @@ export function useSse(
 
   useEffect(() => {
     if (!simId) return;
-    const url = streamUrl(simId);
+    const url = streamUrl(simId, mode);
     const es = new EventSource(url);
 
     es.onopen = () => setConnected(true);
@@ -112,10 +114,16 @@ export function useSse(
       es.addEventListener(t, (ev) => handle(ev as MessageEvent<string>));
     }
 
+    // Replay terminal events the orchestrator sends so the run log
+    // shows the start and finish lines for a recorded run.
+    for (const t of ["replay.started", "replay.finished"]) {
+      es.addEventListener(t, (ev) => handle(ev as MessageEvent<string>));
+    }
+
     return () => {
       es.close();
     };
-  }, [simId]);
+  }, [simId, mode]);
 
   return { connected };
 }

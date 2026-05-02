@@ -32,7 +32,7 @@ import asyncio
 import json
 from collections import deque
 from dataclasses import dataclass, field
-from typing import AsyncIterator
+from typing import AsyncIterator, Callable
 
 
 DEFAULT_CAPACITY = 2000
@@ -57,6 +57,9 @@ class Event:
         return body.encode("utf-8")
 
 
+PublishListener = Callable[[Event], None]
+
+
 @dataclass
 class _SimChannel:
     """Per-sim state held inside the hub."""
@@ -65,6 +68,7 @@ class _SimChannel:
     next_seq: int = 1
     subscribers: set[asyncio.Queue[Event | None]] = field(default_factory=set)
     closed: bool = False
+    listeners: list[PublishListener] = field(default_factory=list)
 
 
 class SseHub:
@@ -105,7 +109,41 @@ class SseHub:
             except asyncio.QueueFull:
                 # Drop on slow consumer rather than blocking the publisher.
                 pass
+        # Listener callbacks (recorder, metrics) fire after subscriber
+        # fan-out so a slow listener cannot starve live SSE consumers.
+        for fn in list(ch.listeners):
+            try:
+                fn(evt)
+            except Exception:
+                # A misbehaving listener must not crash the publisher.
+                pass
         return evt
+
+    # ---------------------------------------------------------------- listeners
+
+    def add_publish_listener(self, sim_id: str, fn: PublishListener) -> None:
+        """Register a callback that fires for every published event on
+        `sim_id`. Used by the recorder to mirror the SSE stream to disk.
+
+        The callback runs synchronously inside `publish()`. Keep it cheap
+        (the recorder appends one line and flushes; flush is fast on a
+        local SSD). Listeners persist for the channel's lifetime; remove
+        them with `remove_publish_listener` when the recording ends.
+        """
+        ch = self._channels.get(sim_id)
+        if ch is None:
+            ch = _SimChannel(buffer=deque(maxlen=self.capacity))
+            self._channels[sim_id] = ch
+        ch.listeners.append(fn)
+
+    def remove_publish_listener(self, sim_id: str, fn: PublishListener) -> None:
+        ch = self._channels.get(sim_id)
+        if ch is None:
+            return
+        try:
+            ch.listeners.remove(fn)
+        except ValueError:
+            pass
 
     # ---------------------------------------------------------------- subscribe
 
