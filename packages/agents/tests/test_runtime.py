@@ -238,3 +238,72 @@ class TestStartStopEvents:
         types = [json.loads(line)["type"] for line in out]
         assert types[0] == "worker.started"
         assert types[-1] == "worker.stopped"
+
+
+class TestRecvCircuitBreaker:
+    """A dead AXL node must not spam worker.error forever.
+
+    The circuit breaker emits worker.fatal after RECV_FATAL_AFTER consecutive
+    failures and exits the loop, leaving one terminal event in the run log
+    instead of an infinite stream of repeats.
+    """
+
+    def test_worker_fatal_after_threshold_and_exits_cleanly(self, ctx, fake, capsys):
+        from packages.agents._runtime import RECV_FATAL_AFTER
+
+        state = WorkerState(ctx=ctx, client=ctx.client())
+
+        boom = RuntimeError("axl gone")
+
+        def failing_recv():
+            raise boom
+
+        state.client.recv = failing_recv  # type: ignore[method-assign]
+
+        # Use a tiny poll_interval so the loop reaches the threshold fast,
+        # then run inline (not in a thread) since the loop should exit on
+        # its own once the breaker fires.
+        loop_until_closed(state, poll_interval=0.0)
+
+        out = capsys.readouterr().out.splitlines()
+        events = [json.loads(line) for line in out]
+        types = [e["type"] for e in events]
+
+        # Exactly one fatal event, followed by the standard worker.stopped.
+        fatals = [e for e in events if e["type"] == "worker.fatal"]
+        assert len(fatals) == 1
+        assert fatals[0]["payload"]["consecutive_failures"] == RECV_FATAL_AFTER
+        assert "axl gone" in fatals[0]["payload"]["last_error"]
+        assert types[-1] == "worker.stopped"
+
+        # The number of worker.error rows is bounded by the threshold,
+        # not unbounded.
+        errors = [e for e in events if e["type"] == "worker.error"]
+        assert len(errors) == RECV_FATAL_AFTER
+
+    def test_failure_counter_resets_on_success(self, ctx, fake, capsys):
+        """A transient burst of recv() errors must not arm the breaker for
+        a healthy run that recovers."""
+        state = WorkerState(ctx=ctx, client=ctx.client())
+
+        calls = {"n": 0}
+        original_recv = state.client.recv
+
+        def flaky_recv():
+            calls["n"] += 1
+            if calls["n"] <= 3:
+                raise RuntimeError("transient")
+            return original_recv()
+
+        state.client.recv = flaky_recv  # type: ignore[method-assign]
+
+        _run_loop_briefly(state, duration_s=0.4)
+
+        out = capsys.readouterr().out.splitlines()
+        events = [json.loads(line) for line in out]
+        # The breaker did not trip.
+        assert not [e for e in events if e["type"] == "worker.fatal"]
+        # Three transient errors landed, all with consecutive_failures <= 3.
+        errs = [e for e in events if e["type"] == "worker.error"]
+        assert len(errs) == 3
+        assert max(e["payload"]["consecutive_failures"] for e in errs) == 3
