@@ -108,7 +108,15 @@ export function useSse(
       "worker.handler_error",
       "worker.gossip_error",
       "worker.skipped",
+      "worker.fatal",
       "envelope.unhandled",
+      "decision.anthropic_failed",
+      "decision.anthropic_truncated",
+      "mcp.service_started",
+      "mcp.service_start_failed",
+      "mcp.score_requested",
+      "mcp.score_received",
+      "mcp.score_failed",
     ];
     for (const t of TYPES) {
       es.addEventListener(t, (ev) => handle(ev as MessageEvent<string>));

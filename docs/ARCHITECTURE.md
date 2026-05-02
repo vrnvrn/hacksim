@@ -55,13 +55,52 @@ The detailed envelope shape and dedupe rules live in `packages/protocol/envelope
 
 ## AXL surfaces in use
 
-Three of AXL's HTTP surfaces carry every cross-agent message:
+<a id="surfaces"></a>
+Four of AXL's HTTP surfaces carry every cross-agent message:
 
 - `GET /topology`: peer enumeration. The algorithm unions direct peers with the spanning tree and drops the local public key. Ported verbatim from Gensyn's `research_network.py`.
 - `POST /send`: unicast fan-out. The runtime broadcasts by iterating peers and POSTing once per destination. `WorkerState.fanout` schedules timed re-broadcasts and `WorkerState.broadcast_now` is the per-tick fan-out, with gossip-style reforward after dedupe so freshly joined peers also see the envelope.
 - `GET /recv`: per-node inbox drain. Workers dedupe on `(sender_id, type, payload_id)` before dispatching to a per-envelope handler.
+- `POST /mcp/{peer}/{service}`: typed JSON-RPC. Used by the organiser during the JUDGING phase to confirm each judge's verdict against a project. The judge node runs an aiohttp side-car (`packages/agents/judge/mcp_service.py`) on a spawner-allocated port; the AXL Go binary is configured with `router_addr` plus `router_port` so inbound MCP traffic gets forwarded to the side-car. See [#mcp](#mcp) below for the full call shape.
 
-AXL also ships `POST /mcp/{peer}/{service}` for typed JSON-RPC and `/a2a/{peer}` for streaming. HackSim does not exercise either in this submission. Wiring an MCP-based judge round trip is captured in [docs/V2_MCP.md](V2_MCP.md) as a four-step task for forks who want to extend.
+AXL also ships `/a2a/{peer}` for streaming. HackSim does not exercise that surface in this submission.
+
+## MCP round trip
+
+<a id="mcp"></a>
+The MCP surface is supplemental: every verdict still rides the envelope path (`verdict.published`). The MCP call confirms the same verdict over a typed transport so the SSE stream shows the JSON-RPC round trip happening live.
+
+Wire shape:
+
+1. The organiser POSTs to `http://<local_axl>/mcp/<judge_peer>/judge` with a JSON-RPC `tools/call` for `score_project`.
+2. AXL wraps the body as an `MCPMessage{service, request, from_peer_id}` envelope and tunnels it through Yggdrasil to the destination peer's TCP listener.
+3. The destination AXL POSTs `{service, request, from_peer_id}` to the configured router URL (`http://127.0.0.1:<router_port>/route`).
+4. The judge's aiohttp side-car runs `decisions.score_project` and returns the verdict in `content[*].text` (MCP convention) plus `structuredContent` (the same dict, parsed).
+5. The reply unwinds back to the caller as a JSON-RPC response.
+
+Code paths:
+
+| Concern | File |
+|---|---|
+| Caller helper | [packages/axl_client/client.py](../packages/axl_client/client.py) `mcp_call` |
+| Service definition | [packages/agents/judge/mcp_service.py](../packages/agents/judge/mcp_service.py) |
+| Side-car lifecycle inside the judge worker | [packages/agents/judge/role.py](../packages/agents/judge/role.py) |
+| Router config plumbing | [packages/orchestrator/spawner.py](../packages/orchestrator/spawner.py) `mcp_router_port`, `with_mcp_router` |
+| Driver loop | [packages/agents/organiser/role.py](../packages/agents/organiser/role.py) `_confirm_via_mcp` |
+| End-to-end test | [tests/integration/test_mcp_round_trip.py](../tests/integration/test_mcp_round_trip.py) |
+
+## Replay
+
+<a id="replay"></a>
+Every running sim is mirrored to disk by `packages/orchestrator/recorder.py`. The recorder subscribes to the SSE hub via `add_publish_listener` and appends every event as one JSON line to `sim-runs/<sim_id>/events.jsonl`. The first line is a meta record (sim id, prompt, started-at, config); each subsequent line is `{"t": <seconds>, "type": <event-type>, "data": <payload>}`.
+
+Three endpoints expose recordings:
+
+- `GET /api/replay` lists every recording on disk with prompt, duration, and event count.
+- `GET /api/replay/{run_id}/snapshot` returns the final accumulated snapshot, mirroring `/api/sim/{id}/snapshot`.
+- `GET /api/replay/{run_id}/stream` streams the events as SSE with an optional `speed` query param (1 = original cadence; default 4 = four times faster). Inter-event sleeps are clamped to 5 seconds so a quiet phase never stalls the viewer; `replay.started` and `replay.finished` bracket the stream.
+
+The frontend's `/replay/[runId]` route reuses the live page's components against the replay endpoints. A judge clicking the hosted preview can watch a real recorded run end to end without a local install.
 
 ## What changed from autoresearch
 
