@@ -7,7 +7,7 @@ from __future__ import annotations
 import os
 from typing import Any, Callable
 
-from packages.agents._anthropic import call_with_retry, make_client
+from packages.agents._anthropic import call_with_retry, get_model, make_client
 
 EmitFn = Callable[[str, dict[str, Any]], None]
 
@@ -114,7 +114,7 @@ def _pick_via_anthropic(
     client = make_client(api_key)
     response = call_with_retry(
         lambda: client.messages.create(
-            model=os.environ.get("HACKSIM_MODEL", "claude-haiku-4-5-20251001"),
+            model=get_model(),
             max_tokens=128,
             system="You are a hackathon builder picking the bounty that best fits your skills.",
             messages=[{"role": "user", "content": user_prompt}],

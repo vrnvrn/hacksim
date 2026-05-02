@@ -16,7 +16,7 @@ import os
 import re
 from typing import Any, Callable
 
-from packages.agents._anthropic import call_with_retry, make_client
+from packages.agents._anthropic import call_with_retry, get_model, make_client
 
 from .persona import ARCHETYPES, CRITERIA, archetype_for_peer_id, load_persona_text
 
@@ -189,7 +189,7 @@ def _score_via_anthropic(
     client = make_client(api_key)
     response = call_with_retry(
         lambda: client.messages.create(
-            model=os.environ.get("HACKSIM_MODEL", "claude-haiku-4-5-20251001"),
+            model=get_model(),
             max_tokens=1024,
             system=load_persona_text(),
             messages=[{"role": "user", "content": user_prompt}],

@@ -22,10 +22,28 @@ contract; this helper just makes the failure visible.
 
 from __future__ import annotations
 
+import os
 from typing import Any, Callable, TypeVar
 
 DEFAULT_TIMEOUT_S = 10.0
 RETRYABLE_ERROR_NAMES = ("APIConnectionError", "APITimeoutError")
+
+# Model id used by every decision site. Centralised so a model refresh is one
+# edit, not four. Override at runtime by exporting `HACKSIM_MODEL`. When
+# Anthropic ships a successor we update this constant and rerun the agent
+# tests; the env var lets a local user pin to a previous version without
+# editing source.
+DEFAULT_MODEL = "claude-haiku-4-5-20251001"
+
+
+def get_model() -> str:
+    """Return the model id every Anthropic call site should use.
+
+    Resolves `HACKSIM_MODEL` if set, falling back to `DEFAULT_MODEL`. Read at
+    call time, not import time, so a process spawned with the env var picks
+    up the override without a restart of the test runner.
+    """
+    return os.environ.get("HACKSIM_MODEL", DEFAULT_MODEL)
 
 EmitFn = Callable[[str, dict[str, Any]], None]
 T = TypeVar("T")
