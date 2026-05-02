@@ -9,7 +9,7 @@ const REPO = "https://github.com/vrnvrn/hacksim";
 const ITEMS: Array<{ title: string; body: string; href: string }> = [
   {
     title: "Architecture",
-    body: "How the FastAPI orchestrator, the AXL nodes, and the role workers fit together. Includes the message-flow diagram and the three AXL surfaces HackSim exercises (topology, send, recv).",
+    body: "How the FastAPI orchestrator, the AXL nodes, and the role workers fit together. Includes the message-flow diagram and the four AXL surfaces HackSim exercises (topology, send, recv, mcp).",
     href: `${REPO}/blob/main/docs/ARCHITECTURE.md`,
   },
   {
