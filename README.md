@@ -37,7 +37,7 @@ If you want to deploy a fixture-mode preview to Vercel, [docs/DEPLOY_VERCEL.md](
 ### Prerequisites
 
 - Go 1.25.5+, Node 20+ with `pnpm`, Python 3.10+, `openssl`.
-- Optional `ANTHROPIC_API_KEY` exported in the shell. Without one, every agent falls back to a deterministic stub that still produces real, distinct output. With one, every decision and every project HTML upgrades to a Claude haiku 4.5 call. SDK failures surface on the SSE stream as `decision.anthropic_failed` instead of falling through silently.
+- Optional `ANTHROPIC_API_KEY` exported in the shell. Without one, every decision-making role (designer, builder, judge) falls back to a deterministic stub keyed off peer id and prompt hash, producing real, distinct output. With one, every bounty, every project HTML, and every verdict upgrades to a Claude haiku 4.5 call (the organiser is choreography only and never calls the SDK). SDK failures surface on the SSE stream as `decision.anthropic_failed` instead of falling through silently.
 
 ## How HackSim uses AXL
 
