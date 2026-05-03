@@ -12,9 +12,9 @@ import {
 } from "@/lib/anthropic-key";
 
 const DEFAULT_CONFIG: SimConfig = {
-  builders: 8,
+  builders: 5,
   judges: 3,
-  designers: 3,
+  designers: 2,
   duration_hint: "short",
   pace: "quick",
 };
@@ -202,7 +202,8 @@ function SettingsPopover({
         <Popover.Content
           align="start"
           sideOffset={8}
-          className="z-40 w-80 rounded-2xl border border-border bg-surface p-5 shadow-lg"
+          collisionPadding={16}
+          className="z-40 w-80 max-h-[calc(100vh-32px)] overflow-y-auto rounded-2xl border border-border bg-surface p-5 shadow-lg"
         >
           <h3 className="font-display text-lg font-semibold text-ink">
             Simulation settings

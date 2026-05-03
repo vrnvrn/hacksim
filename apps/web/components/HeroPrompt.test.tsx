@@ -22,7 +22,7 @@ describe("HeroPrompt", () => {
     await user.click(screen.getByRole("button", { name: "Spin up sim" }));
     expect(onSubmit).toHaveBeenCalledWith(
       "a tiny test hackathon",
-      expect.objectContaining({ builders: 8, judges: 3, designers: 3 }),
+      expect.objectContaining({ builders: 5, judges: 3, designers: 2 }),
     );
   });
 

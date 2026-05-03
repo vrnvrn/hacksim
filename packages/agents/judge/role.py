@@ -26,6 +26,14 @@ from .persona import (
 _JUDGE_RETRY_DELAY_S = 5.0
 _JUDGE_RETRY_BUDGET = 6  # 6 retries x 5s = 30s of slack past the JUDGING tick.
 
+_CRITERION_DESCRIPTIONS: dict[str, str] = {
+    "novelty": "How original the angle is.",
+    "technical_depth": "How much real engineering went into it.",
+    "demo_quality": "How polished and runnable the demo feels.",
+    "documentation": "How clear the code and intent are.",
+    "bounty_fit": "How well it satisfies the bounty's qualification list.",
+}
+
 
 def run(ctx: SkillContext, *, sim_prompt: str | None = None) -> None:
     state = WorkerState(ctx=ctx, client=ctx.client())
@@ -131,7 +139,7 @@ def _judge_round(state: WorkerState) -> None:
                     {
                         "name": crit,
                         "weight": archetype["weights"][i],
-                        "description": f"How {crit.replace('_', ' ')} this submission is.",
+                        "description": _CRITERION_DESCRIPTIONS.get(crit, crit),
                     }
                     for i, crit in enumerate(CRITERIA)
                 ],
