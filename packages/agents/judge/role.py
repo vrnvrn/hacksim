@@ -24,12 +24,17 @@ from .persona import (
 )
 
 
+_JUDGE_RETRY_DELAY_S = 5.0
+_JUDGE_RETRY_BUDGET = 6  # 6 retries x 5s = 30s of slack past the JUDGING tick.
+
+
 def run(ctx: SkillContext) -> None:
     state = WorkerState(ctx=ctx, client=ctx.client())
     state.bounties = {}  # type: ignore[attr-defined]
     state.projects = {}  # type: ignore[attr-defined]
     state.scored = set()  # type: ignore[attr-defined]
     state.rubric_published = False  # type: ignore[attr-defined]
+    state.judge_retries_left = 0  # type: ignore[attr-defined]
 
     # Gossip bounty.posted and project.submitted so peers whose topology
     # was sparse at the original broadcast still hear about them.
@@ -93,7 +98,22 @@ def _on_project_submitted(state: WorkerState, env: Envelope) -> None:
 def _on_phase_tick(state: WorkerState, env: Envelope) -> None:
     if env["payload"].get("phase") != Phase.JUDGING:
         return
+    # Reset the retry budget on every JUDGING tick so a sim-restart
+    # picks up a fresh window.
+    state.judge_retries_left = _JUDGE_RETRY_BUDGET  # type: ignore[attr-defined]
+    _judge_round(state)
 
+
+def _judge_round(state: WorkerState) -> None:
+    """Publish the rubric (once) and score every unscored project.
+
+    project.submitted envelopes propagate through the loopback mesh
+    asynchronously. A judge that runs the JUDGING tick the moment it
+    fires can find state.projects empty (or partial) because the
+    builder broadcasts have not drained yet. Schedule a retry until
+    the per-judge budget is exhausted; the scored set keeps the loop
+    idempotent across retries.
+    """
     topo = state.client.get_topology()
     archetype = archetype_for_peer_id(topo.our_public_key)
 
@@ -130,14 +150,30 @@ def _on_phase_tick(state: WorkerState, env: Envelope) -> None:
         )
 
     projects = list(state.projects.values())  # type: ignore[attr-defined]
-    if not projects:
-        state.emit("judge.no_projects", {})
+    unscored = [
+        project
+        for project in projects
+        if (
+            (pid := str(project.get("project_id") or project.get("id") or ""))
+            and pid not in state.scored  # type: ignore[attr-defined]
+        )
+    ]
+
+    retries_left = getattr(state, "judge_retries_left", 0)
+
+    if not unscored:
+        if retries_left > 0:
+            state.judge_retries_left = retries_left - 1  # type: ignore[attr-defined]
+            state.emit("judge.no_projects", {"retries_left": retries_left})
+            state.schedule(_judge_round, _JUDGE_RETRY_DELAY_S)
+            return
+        # Budget exhausted; no projects ever arrived. Final emit so the
+        # run log makes the bail visible.
+        state.emit("judge.no_projects", {"retries_left": 0, "final": True})
         return
 
-    for project in projects:
+    for project in unscored:
         pid = str(project.get("project_id") or project.get("id") or "")
-        if not pid or pid in state.scored:  # type: ignore[attr-defined]
-            continue
         bounty = state.bounties.get(str(project.get("bounty_id") or ""))  # type: ignore[attr-defined]
         verdict = score_project(
             project=project,
@@ -162,3 +198,9 @@ def _on_phase_tick(state: WorkerState, env: Envelope) -> None:
             "verdict.broadcast",
             {"project_id": pid, "sent_to_initial": sent},
         )
+
+    # More projects might still arrive; keep checking while we have
+    # budget. The scored set makes the next round idempotent.
+    if retries_left > 0:
+        state.judge_retries_left = retries_left - 1  # type: ignore[attr-defined]
+        state.schedule(_judge_round, _JUDGE_RETRY_DELAY_S)
