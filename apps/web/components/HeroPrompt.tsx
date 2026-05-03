@@ -43,6 +43,12 @@ const PLACEHOLDER =
 
 const EXAMPLE_PROMPT = PLACEHOLDER;
 
+// Read at module scope so the value compiles into the bundle. Vercel sets
+// NEXT_PUBLIC_HOSTED_PREVIEW=true on the public landing page; we use it to
+// short-circuit the Spin up sim button into a "run locally" notice
+// instead of silently routing to a recorded mock sim.
+const IS_HOSTED_PREVIEW = process.env.NEXT_PUBLIC_HOSTED_PREVIEW === "true";
+
 export function HeroPrompt({
   onSubmit,
 }: {
@@ -52,9 +58,16 @@ export function HeroPrompt({
   const [config, setConfig] = useState<SimConfig>(DEFAULT_CONFIG);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [hostedNotice, setHostedNotice] = useState(false);
 
   function spinUp(promptText: string) {
     setError(null);
+    if (IS_HOSTED_PREVIEW) {
+      // The hosted preview cannot spawn real AXL nodes. Tell the user
+      // explicitly instead of routing them to a recorded mock sim.
+      setHostedNotice(true);
+      return;
+    }
     if (onSubmit) {
       onSubmit(promptText, config);
       return;
@@ -137,6 +150,35 @@ export function HeroPrompt({
         className="w-full rounded-2xl border border-border focus:border-accent focus:outline-none p-4 text-base min-h-[100px] shadow-sm bg-surface text-ink placeholder:text-muted resize-vertical"
         aria-describedby={error ? "hero-prompt-error" : undefined}
       />
+      {hostedNotice ? (
+        <div
+          role="alert"
+          className="mt-3 rounded-xl border border-accent/40 bg-accent-soft px-4 py-3 text-sm text-ink"
+        >
+          <p className="flex items-start gap-2">
+            <span aria-hidden="true">🔒</span>
+            <span className="leading-snug">
+              <strong className="font-semibold">
+                The hosted preview cannot spawn live agents.
+              </strong>{" "}
+              Real sims need 15 AXL nodes plus role workers running on
+              your machine. Clone the repo and run{" "}
+              <code className="rounded bg-surface px-1 py-0.5 font-mono text-[0.9em]">
+                make demo
+              </code>{" "}
+              for the full experience. The{" "}
+              <a
+                href="/agent-setup"
+                className="font-medium text-accent hover:underline"
+              >
+                /agent-setup
+              </a>{" "}
+              page has a single block your coding agent can paste to set
+              everything up.
+            </span>
+          </p>
+        </div>
+      ) : null}
       {error ? (
         <p id="hero-prompt-error" role="alert" className="text-sm text-coral mt-2">
           {error}
