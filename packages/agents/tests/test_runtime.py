@@ -92,7 +92,13 @@ class TestLoopHandlers:
 
         assert seen == [{"id": "b1", "title": "FoldLab"}]
 
-    def test_unhandled_envelope_logged(self, ctx, fake, capsys):
+    def test_known_envelope_without_handler_is_silently_dropped(self, ctx, fake, capsys):
+        # Known-protocol envelope that this role did not register a handler
+        # for (typical: a builder receives verdict.published from a judge).
+        # Every envelope is broadcast to every peer; emitting one
+        # envelope.unhandled per drop produced ~100 cosmetic log entries
+        # per sim. The runtime now drops these silently and only emits
+        # envelope.unhandled for protocol-unknown types.
         state = WorkerState(ctx=ctx, client=ctx.client())
 
         env = make_envelope(
@@ -106,9 +112,8 @@ class TestLoopHandlers:
         _run_loop_briefly(state)
 
         out = capsys.readouterr().out.splitlines()
-        unhandled = [json.loads(line) for line in out if "envelope.unhandled" in line]
-        assert len(unhandled) == 1
-        assert unhandled[0]["payload"]["type"] == "phase.tick"
+        unhandled = [line for line in out if "envelope.unhandled" in line]
+        assert unhandled == []
 
     def test_dedupe_drops_repeat(self, ctx, fake, capsys):
         state = WorkerState(ctx=ctx, client=ctx.client())

@@ -20,7 +20,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from packages.axl_client import AxlClient
-from packages.protocol import Envelope, decode_envelope
+from packages.protocol import Envelope, decode_envelope, is_known_event
 from packages.skills.hacksim_network.hacksim_network import SkillContext
 
 HandlerFn = Callable[["WorkerState", Envelope], None]
@@ -250,10 +250,21 @@ def loop_until_closed(state: WorkerState, *, poll_interval: float = 0.5) -> None
 
         handler = state.handlers.get(env["type"])
         if handler is None:
-            state.emit(
-                "envelope.unhandled",
-                {"type": env["type"], "from": env["sender_id"][:16]},
-            )
+            # Silently drop envelopes the protocol declares but this role
+            # did not register a handler for (typical case: a builder
+            # receiving verdict.published from a judge, or a designer
+            # receiving team.formed from a builder). Every envelope is
+            # broadcast to every peer in the mesh; without this guard the
+            # run log fills with ~100 cosmetic envelope.unhandled entries
+            # per sim. Only emit the diagnostic when the type is genuinely
+            # unknown to the protocol, which is the case the run log is
+            # supposed to surface (a misconfigured spawn, a stale build,
+            # protocol drift between roles).
+            if not is_known_event(env["type"]):
+                state.emit(
+                    "envelope.unhandled",
+                    {"type": env["type"], "from": env["sender_id"][:16]},
+                )
             continue
 
         try:
