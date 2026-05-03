@@ -38,7 +38,7 @@
     "@types/node": "^22.9.0",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
-    "@vitejs/plugin-react": "^4.7.0",
+    "@vitejs/plugin-react": "^5.2.0",
     "eslint": "^9",
     "happy-dom": "^20.9.0",
     "jsdom": "^25.0.1",
@@ -46,6 +46,12 @@
     "tailwindcss": "^4.0.0-beta.3",
     "typescript": "^5.6.3",
     "typescript-eslint": "^8",
-    "vitest": "^2.1.9"
+    "vite": "^6",
+    "vitest": "^3.2.4"
+  },
+  "pnpm": {
+    "overrides": {
+      "postcss@<8.5.10": ">=8.5.10"
+    }
   }
 }
