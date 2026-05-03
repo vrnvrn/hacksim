@@ -1,4 +1,4 @@
-# V2: wiring an MCP-based judge round trip — shipped
+# V2: wiring an MCP-based judge round trip (shipped)
 
 This file was originally a forward design sketch for a feature HackSim chose not to ship in v1. The feature shipped: see [docs/ARCHITECTURE.md#mcp](ARCHITECTURE.md#mcp) for the live shape and the integration test at [tests/integration/test_mcp_round_trip.py](../tests/integration/test_mcp_round_trip.py).
 
