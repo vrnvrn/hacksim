@@ -6,7 +6,7 @@ One page per role. Each role runs as a Python worker under the orchestrator's `S
 
 **Persona:** `packages/agents/organiser/CLAUDE.md`. The organiser is the bootstrap node. Every other role peers through it, so it has the cleanest view of the mesh. It does not score projects, sponsor bounties, or write code; it keeps time.
 
-**Code:** `packages/agents/organiser/role.py`, `packages/agents/organiser/decisions.py`.
+**Code:** `packages/agents/organiser/role.py`, `packages/agents/organiser/tally.py`.
 
 **Phase ticks (quick pace):**
 
