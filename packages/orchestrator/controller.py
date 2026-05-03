@@ -244,6 +244,26 @@ class SimController:
         self._close_recorder()
         self._running = False
 
+    async def stop_fast(self) -> None:
+        """SIGKILL-based stop. Skips tailer drain and the SIGTERM grace
+        period in stop_all. Used when a new sim is starting and the
+        priority is freeing the bootstrap port over flushing the last
+        worker.stopped events. Wall time is bounded by the slowest
+        process exit, typically well under one second.
+        """
+        if not self._running:
+            return
+        for tailer in self._tailers:
+            try:
+                await tailer.stop(drain=False)
+            except Exception:
+                pass
+        self._tailers.clear()
+        loop = asyncio.get_event_loop()
+        await loop.run_in_executor(None, self._spawner.kill_all)
+        self._close_recorder()
+        self._running = False
+
     # ---------------------------------------------------------------- internals
 
     def _attach_tailer(self, handle, *, role: str) -> None:

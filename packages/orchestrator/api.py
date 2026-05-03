@@ -213,34 +213,36 @@ def create_app(
 
         if app.state.auto_start:
             # The orchestrator runs one simulation at a time. Booting a fresh
-            # one stops every prior controller so their AXL nodes do not
-            # saturate the loopback Yggdrasil mesh and starve the new sim's
-            # bounty.posted broadcasts.
+            # one stops every prior controller so their AXL nodes release the
+            # bootstrap port (127.0.0.1:9100) and clear the loopback
+            # Yggdrasil mesh of stale peers. Without this, the new sim's
+            # designers reach the old organiser, peer with builders that are
+            # gone, and bounty.posted broadcasts go to the empty old mesh.
+            # The new sim's own builders never hear bounties.
             #
-            # Stops fire as background tasks so the POST returns the new sim
-            # id quickly (the redirect to /sim/<id> happens immediately).
-            # Stop_all walks 15 nodes with up to 5s each, so awaiting it
-            # would block the response by ~30 seconds. The hub channel for
-            # the old sim is closed synchronously so its SSE subscribers
-            # disconnect right away. If the new spawn races into a port that
-            # the old AXL binary still holds, Spawner raises SpawnerError;
-            # the SimErrorBanner on /sim/[id] then surfaces it to the user
-            # within seconds rather than after a full timeout.
+            # Stops run concurrently via stop_fast (SIGKILL based) so the
+            # POST returns within ~2.5 seconds. Earlier this code fired the
+            # stops as background tasks for fast response, but that left the
+            # AXL nodes alive on shared ports while the new spawn started,
+            # which is the same race the new logic prevents.
             prior = list(app.state.controllers.values())
             app.state.controllers.clear()
 
-            async def _stop_one(c):
+            async def _stop_one_fast(c):
                 try:
-                    await c.stop()
+                    c.hub.close(c.sim_id)
                 except Exception:
+                    pass
+                try:
+                    await asyncio.wait_for(c.stop_fast(), timeout=2.5)
+                except (asyncio.TimeoutError, Exception):
                     pass
 
-            for old in prior:
-                try:
-                    old.hub.close(old.sim_id)
-                except Exception:
-                    pass
-                asyncio.create_task(_stop_one(old))
+            if prior:
+                await asyncio.gather(
+                    *(_stop_one_fast(c) for c in prior),
+                    return_exceptions=True,
+                )
 
             cfg = ControllerConfig(
                 builders=req.config.builders,

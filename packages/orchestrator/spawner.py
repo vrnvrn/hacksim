@@ -33,6 +33,7 @@ import json
 import os
 import shutil
 import socket
+import signal
 import subprocess
 import time
 from contextlib import contextmanager
@@ -391,6 +392,54 @@ class Spawner:
     @property
     def role_handles(self) -> list[RoleHandle]:
         return list(self._roles)
+
+    def kill_all(self, wait_timeout: float = 0.3) -> None:
+        """SIGKILL every worker and node, then briefly reap. Faster than
+        stop_all because it skips the SIGTERM grace period and the
+        sequential per-process wait. Used by SimController.stop_fast when
+        a new sim is starting and the priority is freeing the bootstrap
+        port over flushing final worker.stopped events.
+        """
+        procs: list[subprocess.Popen] = []
+        for r in self._roles:
+            if r.worker.poll() is None:
+                try:
+                    r.worker.send_signal(signal.SIGKILL)
+                    procs.append(r.worker)
+                except Exception:
+                    pass
+            if r.node.is_running():
+                try:
+                    r.node.process.send_signal(signal.SIGKILL)
+                    procs.append(r.node.process)
+                except Exception:
+                    pass
+        role_ids = {id(r.node) for r in self._roles}
+        for h in self._handles:
+            if id(h) in role_ids:
+                continue
+            if h.is_running():
+                try:
+                    h.process.send_signal(signal.SIGKILL)
+                    procs.append(h.process)
+                except Exception:
+                    pass
+        for p in procs:
+            try:
+                p.wait(timeout=wait_timeout)
+            except Exception:
+                pass
+        # Close worker log fds so the tailers see EOF promptly.
+        for r in self._roles:
+            close_fn = getattr(r, "worker_log_file", None)
+            if close_fn is not None:
+                try:
+                    r.worker_log_file.close()  # type: ignore[union-attr]
+                except Exception:
+                    pass
+        self._roles.clear()
+        self._handles.clear()
+        self._bootstrap_seen = False
 
     def stop_all(self, timeout: float = 5.0) -> None:
         """Stop every spawned role and node. Workers first (so they emit
