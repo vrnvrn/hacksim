@@ -23,12 +23,25 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+# Explicitly allow the dev-server origins as script and style sources so
+# sandboxed iframes can load relative scripts. The iframe is rendered with
+# `sandbox="allow-scripts"` and no `allow-same-origin`, which makes the
+# document's effective origin opaque. In that context CSP's `'self'`
+# resolves against an opaque origin and matches nothing, so a relative
+# `<script src="app.js">` was being blocked even though the bytes were
+# served correctly. The sandbox itself remains the security boundary
+# (no allow-same-origin means the iframe cannot reach parent state); the
+# CSP allowlist below just unblocks resource loads from the same hosts
+# the iframe is served from. Add the production hosted origin here when
+# the deployment URL is known.
+_DEV_ORIGINS = "http://127.0.0.1:3000 http://localhost:3000 http://127.0.0.1:8000 http://localhost:8000"
+
 CSP_HEADER = (
     "default-src 'none'; "
-    "script-src 'self' 'unsafe-inline'; "
-    "style-src 'self' 'unsafe-inline'; "
-    "img-src 'self' data:; "
-    "font-src 'self' data:; "
+    f"script-src 'self' 'unsafe-inline' {_DEV_ORIGINS}; "
+    f"style-src 'self' 'unsafe-inline' {_DEV_ORIGINS}; "
+    f"img-src 'self' data: {_DEV_ORIGINS}; "
+    f"font-src 'self' data: {_DEV_ORIGINS}; "
     "frame-ancestors 'self'"
 )
 

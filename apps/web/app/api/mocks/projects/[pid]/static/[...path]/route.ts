@@ -1,8 +1,17 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 
+// Match the live route CSP. The iframe sandbox makes the document origin
+// opaque so CSP `'self'` cannot resolve; an explicit dev-origin allowlist
+// keeps relative scripts loading. See the matching comment in
+// app/api/sim/[id]/projects/[pid]/static/[...path]/route.ts.
+const DEV_ORIGINS =
+  "http://127.0.0.1:3000 http://localhost:3000 http://127.0.0.1:8000 http://localhost:8000";
 const CSP =
-  "default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:";
+  `default-src 'none'; script-src 'self' 'unsafe-inline' ${DEV_ORIGINS}; ` +
+  `style-src 'self' 'unsafe-inline' ${DEV_ORIGINS}; ` +
+  `img-src 'self' data: ${DEV_ORIGINS}; ` +
+  `font-src 'self' data: ${DEV_ORIGINS}`;
 
 // GET /api/mocks/projects/:pid/static/<path>. Serves the iframe contents
 // with the same strict CSP the real orchestrator emits. Default to
