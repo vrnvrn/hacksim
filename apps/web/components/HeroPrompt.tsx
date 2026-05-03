@@ -60,6 +60,8 @@ export function HeroPrompt({
       return;
     }
     startTransition(async () => {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 12_000);
       try {
         const apiKey = getAnthropicKey();
         const body: Record<string, unknown> = { prompt: promptText, config };
@@ -70,12 +72,35 @@ export function HeroPrompt({
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
+          signal: ctrl.signal,
         });
-        if (!res.ok) throw new Error(`status ${res.status}`);
+        clearTimeout(timer);
+        if (!res.ok) {
+          const text = await res.text().catch(() => "");
+          const detail = text.slice(0, 200).replace(/\s+/g, " ").trim();
+          throw new Error(
+            `POST /api/sim returned ${res.status}${detail ? `: ${detail}` : ""}`,
+          );
+        }
         const json = (await res.json()) as { id: string };
         window.location.href = `/sim/${json.id}`;
-      } catch {
-        setError("Could not reach the orchestrator. Run `make demo` and retry.");
+      } catch (e) {
+        clearTimeout(timer);
+        const msg = e instanceof Error ? e.message : String(e);
+        if (
+          msg.toLowerCase().includes("aborted") ||
+          (e instanceof DOMException && e.name === "AbortError")
+        ) {
+          setError(
+            "Spin-up took longer than 12 seconds. The orchestrator may be cleaning up a prior sim. Try again.",
+          );
+        } else if (msg.toLowerCase().includes("failed to fetch")) {
+          setError(
+            "Could not reach the orchestrator. Run `make demo` and retry.",
+          );
+        } else {
+          setError(`Spin-up failed: ${msg}`);
+        }
       }
     });
   }
