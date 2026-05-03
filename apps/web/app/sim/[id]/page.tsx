@@ -12,6 +12,7 @@ import { RefreshTicker } from "@/components/RefreshTicker";
 import { NowHappening } from "@/components/NowHappening";
 import { SubmissionsGrid } from "@/components/SubmissionsGrid";
 import { RecordedRunPill } from "@/components/RecordedRunPill";
+import { RestartSimButton } from "@/components/RestartSimButton";
 import { SimErrorBanner } from "@/components/SimErrorBanner";
 import type { Metadata } from "next";
 import { getSnapshot } from "@/lib/api";
@@ -104,6 +105,7 @@ export default async function SimPage({
                   View showcase &rarr;
                 </Link>
               ) : null}
+              <RestartSimButton className="ml-auto inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-xs font-medium text-body hover:bg-canvas hover:text-ink transition disabled:opacity-50" />
             </div>
           </header>
 

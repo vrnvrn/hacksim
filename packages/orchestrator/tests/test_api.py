@@ -88,6 +88,88 @@ class TestDelete:
         assert resp.status_code == 404
 
 
+class TestReset:
+    def test_reset_with_no_controllers_returns_204(self, client):
+        resp = client.post("/api/sim/reset")
+        assert resp.status_code == 204
+
+    def test_reset_stops_every_controller(self):
+        """A reset call clears app.state.controllers and awaits stop_fast
+        on each prior controller. Run with a stub controller because
+        spawning a real one needs the AXL binary."""
+
+        class _StubHub:
+            def __init__(self):
+                self.closed: list[str] = []
+
+            def close(self, sim_id: str) -> None:
+                self.closed.append(sim_id)
+
+        class _StubController:
+            def __init__(self, sim_id: str, hub: _StubHub):
+                self.sim_id = sim_id
+                self.hub = hub
+                self.stopped = False
+
+            async def stop_fast(self) -> None:
+                self.stopped = True
+
+        app = create_app(hub=SseHub(capacity=64), auto_start=False)
+        hub = _StubHub()
+        c1 = _StubController("sim_a", hub)
+        c2 = _StubController("sim_b", hub)
+        app.state.controllers["sim_a"] = c1
+        app.state.controllers["sim_b"] = c2
+
+        with TestClient(app) as tc:
+            resp = tc.post("/api/sim/reset")
+            assert resp.status_code == 204
+
+        assert app.state.controllers == {}
+        assert c1.stopped is True
+        assert c2.stopped is True
+        assert sorted(hub.closed) == ["sim_a", "sim_b"]
+
+    def test_reset_swallows_stop_errors(self):
+        """A controller whose stop_fast raises must not block the reset
+        of other controllers, and must not leak the error back to the
+        client. The endpoint returns 204 either way."""
+
+        class _StubHub:
+            def close(self, sim_id: str) -> None:
+                pass
+
+        class _BoomController:
+            sim_id = "sim_boom"
+            hub = _StubHub()
+
+            async def stop_fast(self) -> None:
+                raise RuntimeError("boom")
+
+        class _GoodController:
+            sim_id = "sim_good"
+            hub = _StubHub()
+
+            def __init__(self):
+                self.stopped = False
+
+            async def stop_fast(self) -> None:
+                self.stopped = True
+
+        app = create_app(hub=SseHub(capacity=64), auto_start=False)
+        boom = _BoomController()
+        good = _GoodController()
+        app.state.controllers["sim_boom"] = boom
+        app.state.controllers["sim_good"] = good
+
+        with TestClient(app) as tc:
+            resp = tc.post("/api/sim/reset")
+            assert resp.status_code == 204
+
+        assert app.state.controllers == {}
+        assert good.stopped is True
+
+
 class TestStream:
     def test_stream_404_for_unknown_sim(self, client):
         resp = client.get("/api/sim/sim_unknown/stream")

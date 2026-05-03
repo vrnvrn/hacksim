@@ -340,6 +340,38 @@ def create_app(
             pass
         return None
 
+    @app.post("/api/sim/reset", status_code=status.HTTP_204_NO_CONTENT)
+    async def reset_sims():
+        """Stop every running sim and free the loopback bootstrap port.
+
+        Idempotent. Safe to call from any state. Used by the in-UI
+        Restart button on /sim/<id>: a wedged sim (designer workers
+        crashed, AXL nodes stuck) is recoverable from the browser
+        without dropping to a terminal.
+
+        Stops run concurrently via SimController.stop_fast (SIGKILL
+        based), each capped at 2.5 seconds. Returns 204 on success.
+        """
+        prior = list(app.state.controllers.values())
+        app.state.controllers.clear()
+
+        async def _stop_one_fast(c):
+            try:
+                c.hub.close(c.sim_id)
+            except Exception:
+                pass
+            try:
+                await asyncio.wait_for(c.stop_fast(), timeout=2.5)
+            except (asyncio.TimeoutError, Exception):
+                pass
+
+        if prior:
+            await asyncio.gather(
+                *(_stop_one_fast(c) for c in prior),
+                return_exceptions=True,
+            )
+        return None
+
     @app.on_event("shutdown")
     async def _on_shutdown():
         # Cleanly stop every running controller so workers and AXL nodes
