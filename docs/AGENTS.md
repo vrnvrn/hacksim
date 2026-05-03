@@ -32,7 +32,7 @@ One page per role. Each role runs as a Python worker under the orchestrator's `S
 
 **Outbound envelopes:** `bounty.posted`. The payload carries the sponsor name, the niche, the qualification list, and a budget. The runtime broadcasts on phase entry and re-broadcasts on later peer joins.
 
-**Decision module:** with `ANTHROPIC_API_KEY` set, the bounty body is composed by Claude haiku 4.5 with the persona and prompt as context. Without a key, a deterministic stub keyed off the prompt hash and the designer's peer id picks a sponsor archetype and a qualification list from a curated table. Both paths emit the same envelope shape.
+**Decision module:** with `ANTHROPIC_API_KEY` set, the bounty body attempts a Claude haiku 4.5 call (max_tokens 512) with the persona and prompt as context. Without a key, or on per-call SDK failure (rate limit, timeout), a deterministic stub keyed off the prompt hash and the designer's peer id picks a sponsor archetype and a qualification list from a curated table. SDK failures surface on the SSE stream as `decision.anthropic_failed`. Both paths emit the same envelope shape.
 
 ## Builder
 
@@ -49,7 +49,7 @@ One page per role. Each role runs as a Python worker under the orchestrator's `S
 
 **Artefact pipeline:** the builder runs `git init && git add && git commit -m "..."` in its working directory, then broadcasts `project.submitted`. It also `POST`s artefact metadata to the orchestrator over a separate HTTP channel so the orchestrator can `git archive` the tree and serve it under a strict CSP for the showcase iframe. That second channel is filesystem registration, not agent control. Phase ticks, bounties, team formation, and project submissions all ride AXL.
 
-**Decision module:** with `ANTHROPIC_API_KEY` set, the builder composes the project HTML with Claude. Without a key, a deterministic template keyed off the bounty and the builder's peer id produces a working interactive `index.html`. Both paths produce a real, runnable project.
+**Decision module:** with `ANTHROPIC_API_KEY` set, the builder composes the project HTML with Claude (max_tokens 4096; the prompt asks for a compact ~2-3 KB demo). Without a key, or on per-call SDK failure (rate limit, timeout, mid-stream truncation), a deterministic template keyed off the bounty and the builder's peer id produces a working interactive `index.html`. SDK failures surface on the SSE stream as `decision.anthropic_failed` or `decision.anthropic_truncated`. Both paths produce a real, runnable project.
 
 ## Judge
 
@@ -66,7 +66,7 @@ One page per role. Each role runs as a Python worker under the orchestrator's `S
 
 **How judges read project files:** judges read submitted artefacts directly from the filesystem path the orchestrator registered when the builder broadcast `project.submitted`. There is no Playwright sandbox in this submission. (An earlier README claim said there was; it has been removed. Hands-on evaluation is on the v2 list.)
 
-**Decision module:** with `ANTHROPIC_API_KEY` set, the judge writes the per-project feedback paragraph with Claude using the rubric and the project file contents as context. Without a key, a deterministic stub keyed off the archetype, the project, and the judge's peer id produces five scores plus a feedback paragraph that varies by archetype. Both paths emit the same envelope shape.
+**Decision module:** with `ANTHROPIC_API_KEY` set, the judge writes the per-project feedback paragraph with Claude (max_tokens 512) using the rubric and the project file contents as context. Without a key, or on per-call SDK failure (rate limit, timeout), a deterministic stub keyed off the archetype, the project, and the judge's peer id produces five scores plus a feedback paragraph that varies by archetype. SDK failures surface on the SSE stream as `decision.anthropic_failed`. Both paths emit the same envelope shape.
 
 ## Where to verify
 

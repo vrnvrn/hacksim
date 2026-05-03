@@ -18,10 +18,21 @@ const ITEMS: Faq[] = [
     a: (
       <>
         <P>
-          HackSim has an Anthropic SDK call site per role decision that
-          fires when an API key is set. Without one, the deterministic
-          stub runs and produces real, distinct output. The default
-          demo path makes zero LLM calls.
+          HackSim has an Anthropic SDK call site per role decision. With
+          an API key set, every site attempts a Claude call. Without
+          one, the deterministic stub runs and produces real, distinct
+          output. A no-key run makes zero LLM calls.
+        </P>
+        <P>
+          Per-call failures (Anthropic rate limit, timeout, transient
+          errors) surface on the SSE run log as{" "}
+          <Code>decision.anthropic_failed</Code> and that one decision
+          falls back to the stub. The orchestrator does not retry
+          silently. With a Tier 1 Anthropic key (10K output tokens per
+          minute) and the default population, expect a few fallbacks
+          per sim. The Light mode preset in Settings (3 builders, 1
+          judge, 1 designer) stays well under the limit and runs every
+          decision against Claude.
         </P>
         <P>
           With <Code>ANTHROPIC_API_KEY</Code> exported in the shell that

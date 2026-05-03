@@ -190,7 +190,7 @@ def _score_via_anthropic(
     response = call_with_retry(
         lambda: client.messages.create(
             model=get_model(),
-            max_tokens=1024,
+            max_tokens=512,
             system=load_persona_text(),
             messages=[{"role": "user", "content": user_prompt}],
         ),

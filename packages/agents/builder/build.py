@@ -306,16 +306,18 @@ def _compose_via_anthropic(
         f"Bounty: {json.dumps({k: bounty.get(k) for k in ['title', 'sponsor_name', 'description', 'qualification']}, indent=2)}\n"
         f"Your skills: {', '.join(skills)}\n"
         f"Your peer id (for randomisation): {sender_peer_id[:8]}\n\n"
-        "Write a single-page web project that satisfies the bounty's qualification "
-        "list. The project must be self-contained: index.html plus optional style.css "
-        "and app.js. No external network calls (CSP blocks them). No external scripts. "
-        "Use vanilla JS or import maps if you need a small library.\n\n"
-        "Respond with JSON only. The JSON has keys 'title' (string), 'tagline' (string), "
-        "and 'files' (object mapping filename to file contents). Do not include any "
-        "prose, just the JSON."
+        "Write a compact single-page web project that satisfies the bounty's "
+        "qualification list. Keep it tight: target around 2 KB of HTML plus 1 KB "
+        "each of CSS and JS. Prefer a small working interactive demo over a "
+        "long landing page. Self-contained: index.html plus optional style.css "
+        "and app.js. No external network calls (CSP blocks them). No external "
+        "scripts. Vanilla JS or import maps only.\n\n"
+        "Respond with JSON only. The JSON has keys 'title' (string), 'tagline' "
+        "(string), and 'files' (object mapping filename to file contents). Do "
+        "not include any prose, just the JSON. Stay under 3500 tokens of output."
     )
 
-    # 60s timeout: this call asks for up to 8192 tokens of HTML/CSS/JS,
+    # 60s timeout: this call asks for up to 4096 tokens of HTML/CSS/JS,
     # which Claude haiku 4.5 reliably needs 15-30s to produce. The default
     # 10s timeout aborted every compose mid-stream, dropped every builder to
     # the deterministic stub, and submissions arrived after JUDGING closed.
@@ -323,7 +325,7 @@ def _compose_via_anthropic(
     response = call_with_retry(
         lambda: client.messages.create(
             model=get_model(),
-            max_tokens=8192,
+            max_tokens=4096,
             system="You are a hackathon builder. Write small, well-crafted web projects.",
             messages=[{"role": "user", "content": user_prompt}],
         ),
@@ -340,7 +342,7 @@ def _compose_via_anthropic(
         if emit is not None:
             emit(
                 "decision.anthropic_truncated",
-                {"operation": "compose_project", "max_tokens": 8192},
+                {"operation": "compose_project", "max_tokens": 4096},
             )
         raise ValueError("response hit max_tokens before completing")
     match = re.search(r"\{[\s\S]*\}", text)

@@ -37,7 +37,7 @@ If you want to deploy a fixture-mode preview to Vercel, [docs/DEPLOY_VERCEL.md](
 ### Prerequisites
 
 - Go 1.25.5+, Node 20+ with `pnpm`, Python 3.10+, `openssl`.
-- Optional `ANTHROPIC_API_KEY` exported in the shell. Without one, every decision-making role (designer, builder, judge) falls back to a deterministic stub keyed off peer id and prompt hash, producing real, distinct output. With one, every bounty, every project HTML, and every verdict upgrades to a Claude haiku 4.5 call (the organiser is choreography only and never calls the SDK). SDK failures surface on the SSE stream as `decision.anthropic_failed` instead of falling through silently.
+- Optional `ANTHROPIC_API_KEY` exported in the shell. Without one, every decision-making role (designer, builder, judge) runs a deterministic stub keyed off peer id and prompt hash, producing real, distinct output. With one, every bounty, every project HTML, and every verdict attempts a Claude haiku 4.5 call (the organiser is choreography only and never calls the SDK). Per-call failures (Anthropic rate limit, timeout, transient errors) surface on the SSE stream as `decision.anthropic_failed` and that single decision falls back to the stub; other calls in the same sim still try Claude. With a Tier 1 Anthropic key (10K output tokens per minute) and the default population (8 builders, 3 judges, 3 designers), expect a handful of fallbacks per sim. The "Light mode (3 builders, 1 judge, 1 designer)" preset in the Settings popover stays under the limit.
 
 ## How HackSim uses AXL
 
