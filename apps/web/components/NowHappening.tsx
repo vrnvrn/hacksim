@@ -160,10 +160,3 @@ function describe(s: {
   };
 }
 
-function plural(n: number, noun: string): string {
-  return `${n} ${maybeS(n, noun)}`;
-}
-
-function maybeS(n: number, noun: string): string {
-  return n === 1 ? noun : `${noun}s`;
-}

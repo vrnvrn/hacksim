@@ -15,7 +15,6 @@ import { RecordedRunPill } from "@/components/RecordedRunPill";
 import { RestartSimButton } from "@/components/RestartSimButton";
 import { SimErrorBanner } from "@/components/SimErrorBanner";
 import type { Metadata } from "next";
-import { getSnapshot } from "@/lib/api";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import type { Snapshot } from "@/lib/types";

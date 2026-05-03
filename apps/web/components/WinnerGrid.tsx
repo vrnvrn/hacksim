@@ -1,15 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import type {
-  Bounty,
-  Builder,
-  Judge,
-  Project,
-  Verdict,
-} from "@/lib/types";
+import type { Bounty, Project, Snapshot } from "@/lib/types";
 import { rankWinners } from "@/lib/api";
-import type { Snapshot } from "@/lib/types";
 import { WinnerCard } from "./WinnerCard";
 import { ProjectDemoModal } from "./ProjectDemoModal";
 import { EmptyState } from "./EmptyState";
