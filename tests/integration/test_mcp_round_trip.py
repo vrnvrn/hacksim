@@ -22,15 +22,16 @@ import pytest
 
 aiohttp = pytest.importorskip("aiohttp")
 
-from packages.agents.judge.mcp_service import (
+# Imports below sit after the importorskip guard so a missing aiohttp
+# does not break collection. ruff E402 expected and silenced.
+from packages.agents.judge.mcp_service import (  # noqa: E402
     SCORE_TOOL,
     SERVICE_NAME,
     build_app,
 )
-from packages.axl_client import AxlClient
+from packages.axl_client import AxlClient  # noqa: E402
 
-from ._axl_node import axl_binary_available, axl_node
-
+from ._axl_node import axl_binary_available, axl_node  # noqa: E402
 
 pytestmark = [
     pytest.mark.skipif(

@@ -12,12 +12,10 @@ import threading
 
 import pytest
 
+from packages.agents._runtime import WorkerState, loop_until_closed
 from packages.axl_client.tests._fake_axl import FakeAxl
 from packages.protocol import Phase, encode_envelope, make_envelope
 from packages.skills.hacksim_network.hacksim_network import SkillContext
-
-from packages.agents._runtime import WorkerState, loop_until_closed
-
 
 PEER_A = "a" * 64
 PEER_B = "b" * 64

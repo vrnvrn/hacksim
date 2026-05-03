@@ -16,7 +16,6 @@ from packages.protocol import (
     make_envelope,
 )
 
-
 VALID_PEER = "a" * 64
 ALT_PEER = "b" * 64
 

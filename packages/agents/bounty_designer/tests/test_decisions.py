@@ -18,7 +18,6 @@ from packages.agents.bounty_designer.persona import (
     sponsor_for_peer_id,
 )
 
-
 PEER_A = "a" * 64
 PEER_B = "b" * 64
 

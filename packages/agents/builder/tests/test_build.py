@@ -4,12 +4,10 @@ from __future__ import annotations
 
 import shutil
 import subprocess
-from pathlib import Path
 
 import pytest
 
 from packages.agents.builder.build import _compose_stub, write_project
-
 
 PEER_A = "a" * 64
 PEER_B = "b" * 64

@@ -5,16 +5,14 @@ on phase tick to BOUNTY_DESIGN, and only once per phase.
 from __future__ import annotations
 
 import json
-import threading
 
 import pytest
 
-from packages.agents._runtime import WorkerState, loop_until_closed
+from packages.agents._runtime import WorkerState
 from packages.agents.bounty_designer.role import _on_phase_tick, _on_sim_prompt
 from packages.axl_client.tests._fake_axl import FakeAxl
-from packages.protocol import Phase, decode_envelope, encode_envelope, make_envelope
+from packages.protocol import Phase, decode_envelope, make_envelope
 from packages.skills.hacksim_network.hacksim_network import SkillContext
-
 
 PEER_A = "a" * 64
 PEER_B = "b" * 64

@@ -15,13 +15,13 @@ import json
 import signal
 import sys
 import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any, Callable
+from typing import Any
 
 from packages.axl_client import AxlClient
 from packages.protocol import Envelope, decode_envelope
 from packages.skills.hacksim_network.hacksim_network import SkillContext
-
 
 HandlerFn = Callable[["WorkerState", Envelope], None]
 
@@ -36,7 +36,7 @@ class WorkerState:
     gossip_types: set[str] = field(default_factory=set)
     seen: set[tuple[str, str, str]] = field(default_factory=set)
     closed: bool = False
-    timers: list[tuple[float, Callable[["WorkerState"], None]]] = field(default_factory=list)
+    timers: list[tuple[float, Callable[[WorkerState], None]]] = field(default_factory=list)
 
     def emit(self, event_type: str, payload: dict[str, Any]) -> None:
         """Write one structured event line to stdout. The orchestrator's
@@ -76,7 +76,7 @@ class WorkerState:
         if gossip:
             self.gossip_types.add(envelope_type)
 
-    def schedule(self, fn: Callable[["WorkerState"], None], delay: float) -> None:
+    def schedule(self, fn: Callable[[WorkerState], None], delay: float) -> None:
         """Run `fn(state)` once after `delay` seconds.
 
         The main loop processes due timers each tick. Multiple timers fire

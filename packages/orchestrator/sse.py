@@ -31,9 +31,8 @@ from __future__ import annotations
 import asyncio
 import json
 from collections import deque
+from collections.abc import AsyncIterator, Callable
 from dataclasses import dataclass, field
-from typing import AsyncIterator, Callable
-
 
 DEFAULT_CAPACITY = 2000
 

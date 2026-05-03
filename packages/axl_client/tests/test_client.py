@@ -7,7 +7,6 @@ import pytest
 from packages.axl_client import AxlClient, AxlError, ReceivedMessage
 from packages.axl_client.tests._fake_axl import FakeAxl
 
-
 PEER_A = "a" * 64
 PEER_B = "b" * 64
 OUR_PEER = "0" * 64

@@ -23,7 +23,8 @@ contract; this helper just makes the failure visible.
 from __future__ import annotations
 
 import os
-from typing import Any, Callable, TypeVar
+from collections.abc import Callable
+from typing import Any, TypeVar
 
 DEFAULT_TIMEOUT_S = 10.0
 RETRYABLE_ERROR_NAMES = ("APIConnectionError", "APITimeoutError")

@@ -32,14 +32,13 @@ from __future__ import annotations
 import json
 import os
 import shutil
-import socket
 import signal
+import socket
 import subprocess
 import time
-from contextlib import contextmanager
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any
 
 DEFAULT_BOOTSTRAP_LISTEN = "tls://127.0.0.1:9100"
 DEFAULT_API_PORT_BASE = 9200
@@ -467,7 +466,7 @@ class Spawner:
         self._handles.clear()
         self._bootstrap_seen = False
 
-    def __enter__(self) -> "Spawner":
+    def __enter__(self) -> Spawner:
         return self
 
     def __exit__(self, exc_type, exc, tb) -> None:

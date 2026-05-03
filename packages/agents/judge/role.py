@@ -23,7 +23,6 @@ from .persona import (
     display_name_for_peer_id,
 )
 
-
 _JUDGE_RETRY_DELAY_S = 5.0
 _JUDGE_RETRY_BUDGET = 6  # 6 retries x 5s = 30s of slack past the JUDGING tick.
 

@@ -9,14 +9,11 @@ tailer.
 from __future__ import annotations
 
 import json
-import threading
-import time
 
 import pytest
 
 from packages.agents import worker
 from packages.axl_client.tests._fake_axl import FakeAxl
-from packages.skills.hacksim_network.hacksim_network import SkillContext
 
 
 @pytest.fixture

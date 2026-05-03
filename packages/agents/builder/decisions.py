@@ -5,7 +5,8 @@ Anthropic SDK upgrade.
 from __future__ import annotations
 
 import os
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from packages.agents._anthropic import call_with_retry, get_model, make_client
 

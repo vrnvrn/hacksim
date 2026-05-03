@@ -14,7 +14,6 @@ from packages.axl_client.tests._fake_axl import FakeAxl
 from packages.protocol import Phase, decode_envelope, encode_envelope, make_envelope
 from packages.skills.hacksim_network import hacksim_network as skill
 
-
 PEER_A = "a" * 64
 PEER_B = "b" * 64
 OUR = "0" * 64

@@ -8,13 +8,13 @@ fields into a single `payload` dict so consumers can validate per type.
 
 from .envelopes import (
     PROTO_VERSION,
-    Phase,
-    EventType,
     Envelope,
-    make_envelope,
-    encode_envelope,
+    EventType,
+    Phase,
     decode_envelope,
+    encode_envelope,
     is_known_event,
+    make_envelope,
 )
 
 __all__ = [

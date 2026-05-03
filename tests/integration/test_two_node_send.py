@@ -26,7 +26,6 @@ from packages.protocol import Phase, decode_envelope, encode_envelope, make_enve
 
 from ._axl_node import axl_binary_available, axl_node
 
-
 pytestmark = [
     pytest.mark.skipif(not axl_binary_available(), reason="AXL binary not built; run scripts/build_axl.sh"),
     pytest.mark.skipif(shutil.which("openssl") is None, reason="openssl required to generate ed25519 keys"),

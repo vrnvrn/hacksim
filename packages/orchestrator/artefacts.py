@@ -23,7 +23,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-
 CSP_HEADER = (
     "default-src 'none'; "
     "script-src 'self' 'unsafe-inline'; "

@@ -12,7 +12,6 @@ import pytest
 from packages.axl_client import AxlClient
 from packages.axl_client.tests._fake_axl import FakeAxl
 
-
 OUR = "0" * 64
 PEER_A = "a" * 64
 PEER_B = "b" * 64

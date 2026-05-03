@@ -9,7 +9,6 @@ import pytest
 
 from packages.orchestrator.sse import Event, SseHub
 
-
 SIM = "sim_1"
 OTHER_SIM = "sim_2"
 
@@ -166,7 +165,7 @@ class TestSubscribeLive:
     async def test_close_terminates_subscriber(self, hub):
         async def consume():
             count = 0
-            async for evt in hub.subscribe(SIM):
+            async for _evt in hub.subscribe(SIM):
                 count += 1
             return count
 

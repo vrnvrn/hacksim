@@ -3,10 +3,10 @@ multiplexes their events into a single SSE feed, and serves the web UI.
 """
 
 from .artefacts import (
+    CSP_HEADER,
     ArtefactError,
     ArtefactRecord,
     ArtefactStore,
-    CSP_HEADER,
 )
 from .controller import SimConfig, SimController
 from .log_tailer import LogTailer

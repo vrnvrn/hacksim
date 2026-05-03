@@ -18,13 +18,15 @@ from __future__ import annotations
 
 import asyncio
 import os
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 from packages.agents.builder.persona import (
     display_name_for_peer_id as builder_display_name,
+)
+from packages.agents.builder.persona import (
     skill_profile_for_peer_id,
 )
 
@@ -32,7 +34,7 @@ from .artefacts import ArtefactStore
 from .log_tailer import LogTailer
 from .recorder import Recorder
 from .snapshot import apply_event, empty_snapshot
-from .spawner import NodeSpec, Spawner
+from .spawner import Spawner
 from .sse import Event, SseHub
 
 

@@ -9,9 +9,8 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
-from packages.orchestrator import ArtefactError, ArtefactStore, CSP_HEADER, SseHub
+from packages.orchestrator import CSP_HEADER, ArtefactError, ArtefactStore, SseHub
 from packages.orchestrator.api import create_app
-
 
 pytestmark = pytest.mark.skipif(
     shutil.which("git") is None,

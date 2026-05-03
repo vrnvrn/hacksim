@@ -5,7 +5,6 @@ injected so the tests do not require a real AXL binary or openssl.
 from __future__ import annotations
 
 import json
-import time
 from pathlib import Path
 from unittest.mock import MagicMock
 

@@ -25,7 +25,6 @@ import argparse
 import json
 import os
 import sys
-import time
 from dataclasses import dataclass
 from typing import Any
 
@@ -48,7 +47,7 @@ class SkillContext:
     sim_id: str
 
     @classmethod
-    def from_env(cls) -> "SkillContext":
+    def from_env(cls) -> SkillContext:
         port = os.environ.get("AXL_API_PORT")
         if not port:
             raise RuntimeError("AXL_API_PORT must be set")

@@ -22,8 +22,7 @@ from typing import Any
 
 from packages.agents._anthropic import call_with_retry, get_model, make_client
 
-from .persona import SPONSORS, load_persona_text, sponsor_for_peer_id
-
+from .persona import load_persona_text, sponsor_for_peer_id
 
 # Deterministic prize tiers per sponsor: stub mode picks one of these.
 _PRIZE_TIERS = {
@@ -134,7 +133,7 @@ def _propose_stub(*, sim_prompt: str, sender_peer_id: str) -> dict[str, Any]:
 
     # Mix in the sim prompt so two sims with different prompts produce
     # different bounty titles for the same sponsor.
-    h = hashlib.sha256(f"{sender_peer_id}|{sim_prompt}".encode("utf-8")).digest()
+    h = hashlib.sha256(f"{sender_peer_id}|{sim_prompt}".encode()).digest()
     prize_options = _PRIZE_TIERS.get(name, [1000, 2000])
     prize = prize_options[h[1] % len(prize_options)]
 

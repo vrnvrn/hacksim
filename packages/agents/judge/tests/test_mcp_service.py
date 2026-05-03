@@ -21,16 +21,14 @@ import json
 import pytest
 
 aiohttp = pytest.importorskip("aiohttp")
-from aiohttp import web  # noqa: E402  (after importorskip)
 from aiohttp.test_utils import TestClient, TestServer  # noqa: E402
 
-from packages.agents.judge.mcp_service import (
+from packages.agents.judge.mcp_service import (  # noqa: E402
     SCORE_TOOL,
     SERVICE_NAME,
     build_app,
     make_score_handler,
 )
-
 
 JUDGE_PEER = "j" * 64
 

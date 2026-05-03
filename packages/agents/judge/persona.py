@@ -6,7 +6,6 @@ import hashlib
 from pathlib import Path
 from typing import Final
 
-
 CRITERIA: Final[list[str]] = [
     "novelty",
     "technical_depth",

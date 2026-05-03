@@ -8,9 +8,9 @@ upstream demo does. Pure urllib, no third-party HTTP dependency.
 from .client import (
     AxlClient,
     AxlError,
+    PeerInfo,
     ReceivedMessage,
     Topology,
-    PeerInfo,
 )
 
 __all__ = [

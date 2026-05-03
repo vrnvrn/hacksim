@@ -11,7 +11,6 @@ from packages.agents.judge.persona import (
     archetype_for_peer_id,
 )
 
-
 PEER_J1 = "1" * 64
 PEER_J2 = "2" * 64
 PEER_J3 = "3" * 64
@@ -82,7 +81,7 @@ class TestStubScore:
     def test_total_matches_weighted_sum(self):
         v = _score_stub(project=_project(), bounty=_bounty(), judge_peer_id=PEER_J1)
         archetype = archetype_for_peer_id(PEER_J1)
-        expected = sum(v["scores"][crit] * w for crit, w in zip(CRITERIA, archetype["weights"]))
+        expected = sum(v["scores"][crit] * w for crit, w in zip(CRITERIA, archetype["weights"], strict=True))
         assert abs(v["total"] - round(expected, 2)) < 1e-9
 
     def test_score_is_deterministic_per_judge_per_project(self):

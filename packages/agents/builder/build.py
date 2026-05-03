@@ -17,8 +17,9 @@ import json
 import os
 import re
 import subprocess
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 from packages.agents._anthropic import call_with_retry, get_model, make_client
 

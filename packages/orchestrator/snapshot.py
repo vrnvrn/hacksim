@@ -18,10 +18,8 @@ through to the SSE feed but do not mutate the snapshot.
 from __future__ import annotations
 
 from copy import deepcopy
-from typing import Any
 
 from packages.protocol import Phase
-
 
 # Bump SCHEMA_VERSION whenever the snapshot shape changes in a way the
 # frontend cannot tolerate (renaming fields, dropping required keys, or

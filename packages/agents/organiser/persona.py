@@ -12,7 +12,6 @@ from typing import Final
 
 from packages.protocol import Phase
 
-
 # Default "quick" pace per CLAUDE.md. Configurable later via SimConfig.
 DEFAULT_SCHEDULE: Final[list[tuple[float, int]]] = [
     (5.0, Phase.BOUNTY_DESIGN),

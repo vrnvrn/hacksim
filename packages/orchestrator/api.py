@@ -42,7 +42,6 @@ from .recorder import read_recording
 from .snapshot import apply_events, empty_snapshot
 from .sse import SseHub
 
-
 _LOCAL_HOSTS = frozenset({"127.0.0.1", "::1", "localhost"})
 
 

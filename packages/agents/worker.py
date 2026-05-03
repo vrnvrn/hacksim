@@ -23,7 +23,6 @@ from packages.skills.hacksim_network.hacksim_network import SkillContext
 
 from ._runtime import stub_heartbeat
 
-
 KNOWN_ROLES = frozenset({"bounty_designer", "builder", "judge", "organiser"})
 
 

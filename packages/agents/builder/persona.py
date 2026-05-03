@@ -6,7 +6,6 @@ import hashlib
 from pathlib import Path
 from typing import Final
 
-
 SKILL_POOL: Final[list[str]] = [
     "Python", "JavaScript", "TypeScript", "Go", "Rust",
     "Solidity", "Cairo", "Move",

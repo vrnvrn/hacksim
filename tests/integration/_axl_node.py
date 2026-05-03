@@ -17,10 +17,10 @@ import shutil
 import socket
 import subprocess
 import time
+from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterator
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 AXL_BIN = REPO_ROOT / "third_party" / "axl" / "node"

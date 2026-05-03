@@ -16,12 +16,10 @@ from __future__ import annotations
 from pathlib import Path
 from unittest.mock import AsyncMock, patch
 
-import pytest
 from fastapi.testclient import TestClient
 
 from packages.orchestrator import SimController, SseHub
-from packages.orchestrator.api import create_app, CreateSimRequest
-
+from packages.orchestrator.api import CreateSimRequest, create_app
 
 SECRET = "sk-ant-api03-fake-test-key-do-not-use-do-not-log-XXXX"
 

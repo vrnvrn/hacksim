@@ -16,12 +16,12 @@ from __future__ import annotations
 
 import asyncio
 import json
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Awaitable, Callable
+from typing import Any
 
 from .sse import SseHub
-
 
 # Optional callback invoked for every parsed event. Useful for the
 # SimController to fold events through the snapshot accumulator at the

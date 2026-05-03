@@ -18,9 +18,8 @@ from packages.agents.organiser.role import (
     _on_verdict_published,
 )
 from packages.axl_client.tests._fake_axl import FakeAxl
-from packages.protocol import Phase, decode_envelope, encode_envelope, make_envelope
+from packages.protocol import Phase, decode_envelope, make_envelope
 from packages.skills.hacksim_network.hacksim_network import SkillContext
-
 
 PEER_A = "a" * 64
 PEER_B = "b" * 64

@@ -33,7 +33,8 @@ import asyncio
 import json
 import logging
 import threading
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from .decisions import score_project
 
@@ -90,7 +91,6 @@ def build_app(judge_peer_id: str, emit: EmitFn | None = None):
             )
         service = body.get("service", "")
         rpc = body.get("request") or {}
-        from_peer_id = body.get("from_peer_id", "unknown")
 
         if service != SERVICE_NAME:
             return web.json_response(

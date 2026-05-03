@@ -11,7 +11,6 @@ from packages.agents.builder.persona import (
     skill_profile_for_peer_id,
 )
 
-
 PEER_A = "a" * 64
 
 

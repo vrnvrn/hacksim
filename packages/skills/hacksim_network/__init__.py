@@ -11,9 +11,9 @@ stdlib only on the wire layer, role-specific helpers on top.
 
 from .hacksim_network import (
     SkillContext,
-    cmd_status,
-    cmd_recv,
     cmd_post_bounty,
+    cmd_recv,
+    cmd_status,
     cmd_submit_project,
     main,
 )

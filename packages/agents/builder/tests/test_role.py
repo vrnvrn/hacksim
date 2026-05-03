@@ -9,9 +9,8 @@ import pytest
 from packages.agents._runtime import WorkerState
 from packages.agents.builder.role import _on_bounty_posted, _on_phase_tick
 from packages.axl_client.tests._fake_axl import FakeAxl
-from packages.protocol import Phase, decode_envelope, encode_envelope, make_envelope
+from packages.protocol import Phase, decode_envelope, make_envelope
 from packages.skills.hacksim_network.hacksim_network import SkillContext
-
 
 PEER_A = "a" * 64
 PEER_B = "b" * 64

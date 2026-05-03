@@ -124,7 +124,7 @@ class FakeAxl:
         host, port = self._server.server_address[0], self._server.server_address[1]
         return f"http://{host}:{port}"
 
-    def __enter__(self) -> "FakeAxl":
+    def __enter__(self) -> FakeAxl:
         handler_cls = _make_handler(self.state)
         self._server = ThreadingHTTPServer(("127.0.0.1", 0), handler_cls)
         self._thread = threading.Thread(target=self._server.serve_forever, daemon=True)

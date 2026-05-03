@@ -14,11 +14,12 @@ import hashlib
 import json
 import os
 import re
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from packages.agents._anthropic import call_with_retry, get_model, make_client
 
-from .persona import ARCHETYPES, CRITERIA, archetype_for_peer_id, load_persona_text
+from .persona import CRITERIA, archetype_for_peer_id, load_persona_text
 
 EmitFn = Callable[[str, dict[str, Any]], None]
 
@@ -70,7 +71,7 @@ def _score_stub(
 ) -> dict[str, Any]:
     archetype = archetype_for_peer_id(judge_peer_id)
     project_id = str(project.get("project_id", ""))
-    h = hashlib.sha256(f"{judge_peer_id}|{project_id}".encode("utf-8")).digest()
+    h = hashlib.sha256(f"{judge_peer_id}|{project_id}".encode()).digest()
 
     # Per-criterion base score 4..9 with archetype bias on each axis.
     scores: dict[str, int] = {}
@@ -81,7 +82,7 @@ def _score_stub(
         scores[crit] = score
 
     weights = archetype["weights"]
-    total = sum(scores[crit] * w for crit, w in zip(CRITERIA, weights))
+    total = sum(scores[crit] * w for crit, w in zip(CRITERIA, weights, strict=True))
     total = round(total, 2)
 
     bounty_title = (bounty or {}).get("title", "the chosen bounty")
@@ -173,7 +174,7 @@ def _score_via_anthropic(
 ) -> dict[str, Any]:
     """Ask Claude to score the project against the rubric. Validates JSON."""
     archetype = archetype_for_peer_id(judge_peer_id)
-    rubric = {crit: w for crit, w in zip(CRITERIA, archetype["weights"])}
+    rubric = dict(zip(CRITERIA, archetype["weights"], strict=True))
 
     user_prompt = (
         f"Your archetype is {archetype['name']}, {archetype['tone_hint']}.\n"
