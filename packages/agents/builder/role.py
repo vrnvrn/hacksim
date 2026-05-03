@@ -102,14 +102,14 @@ def _post_artefact_to_orchestrator(state: WorkerState, payload: dict) -> None:
         )
 
 
-def run(ctx: SkillContext) -> None:
+def run(ctx: SkillContext, *, sim_prompt: str | None = None) -> None:
     state = WorkerState(ctx=ctx, client=ctx.client())
     state.bounties = {}  # type: ignore[attr-defined]
     state.team_formed = False  # type: ignore[attr-defined]
     state.chosen_bounty = None  # type: ignore[attr-defined]
     state.team_id = None  # type: ignore[attr-defined]
     state.submitted = False  # type: ignore[attr-defined]
-    state.sim_prompt = ""  # type: ignore[attr-defined]
+    state.sim_prompt = sim_prompt or ""  # type: ignore[attr-defined]
 
     # Gossip the bounties we receive so other builders whose topology has not
     # expanded to include the original designer still hear about them.

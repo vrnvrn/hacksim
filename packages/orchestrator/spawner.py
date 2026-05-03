@@ -192,6 +192,7 @@ class Spawner:
         startup_timeout: float = DEFAULT_STARTUP_TIMEOUT,
         python_bin: str | None = None,
         sim_id: str = "sim_default",
+        sim_prompt: str = "",
         orch_url: str | None = None,
         keygen: callable | None = None,
         popen: callable | None = None,
@@ -205,6 +206,7 @@ class Spawner:
         self.startup_timeout = startup_timeout
         self.python_bin = python_bin or _find_python()
         self.sim_id = sim_id
+        self.sim_prompt = sim_prompt
         self.orch_url = orch_url
         self._keygen = keygen or _gen_ed25519_pem
         self._popen = popen or subprocess.Popen
@@ -345,6 +347,8 @@ class Spawner:
             "HACKSIM_WORK_DIR": str(node.work_dir),
             "PYTHONPATH": f"{repo_root}{os.pathsep}{os.environ.get('PYTHONPATH', '')}".rstrip(os.pathsep),
         }
+        if self.sim_prompt:
+            env["HACKSIM_SIM_PROMPT"] = self.sim_prompt
         if mcp_router_port is not None:
             # The role worker reads HACKSIM_MCP_ROUTER_PORT and starts the
             # MCP service on that port if it knows how (judges do; other

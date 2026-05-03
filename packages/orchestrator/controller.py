@@ -90,6 +90,7 @@ class SimController:
             base_dir=base_dir,
             axl_bin=axl_bin,
             sim_id=sim_id,
+            sim_prompt=prompt,
             orch_url=orch_url,
         )
         self._tailers: list[LogTailer] = []

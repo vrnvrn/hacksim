@@ -26,7 +26,7 @@ from .persona import DEFAULT_CLOSE_AT, PACE_PRESETS
 from .tally import tally_leaderboard
 
 
-def run(ctx: SkillContext) -> None:
+def run(ctx: SkillContext, *, sim_prompt: str | None = None) -> None:
     state = WorkerState(ctx=ctx, client=ctx.client())
     state.projects = {}  # type: ignore[attr-defined]
     state.verdicts = {}  # type: ignore[attr-defined]
@@ -34,6 +34,7 @@ def run(ctx: SkillContext) -> None:
     state.judges = {}  # type: ignore[attr-defined]
     state.bounties = {}  # type: ignore[attr-defined]
     state.mcp_called = set()  # type: ignore[attr-defined]
+    state.sim_prompt = sim_prompt or ""  # type: ignore[attr-defined]
 
     # The organiser is the bootstrap, so every other role connects to it
     # directly. That makes it the natural relay: registering gossip=True for

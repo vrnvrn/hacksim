@@ -28,13 +28,14 @@ _JUDGE_RETRY_DELAY_S = 5.0
 _JUDGE_RETRY_BUDGET = 6  # 6 retries x 5s = 30s of slack past the JUDGING tick.
 
 
-def run(ctx: SkillContext) -> None:
+def run(ctx: SkillContext, *, sim_prompt: str | None = None) -> None:
     state = WorkerState(ctx=ctx, client=ctx.client())
     state.bounties = {}  # type: ignore[attr-defined]
     state.projects = {}  # type: ignore[attr-defined]
     state.scored = set()  # type: ignore[attr-defined]
     state.rubric_published = False  # type: ignore[attr-defined]
     state.judge_retries_left = 0  # type: ignore[attr-defined]
+    state.sim_prompt = sim_prompt or ""  # type: ignore[attr-defined]
 
     # Gossip bounty.posted and project.submitted so peers whose topology
     # was sparse at the original broadcast still hear about them.

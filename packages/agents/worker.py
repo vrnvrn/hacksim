@@ -15,6 +15,7 @@ Invoked by the orchestrator's Spawner via:
 from __future__ import annotations
 
 import json
+import os
 import sys
 import time
 
@@ -95,7 +96,14 @@ def main() -> int:
         stub_heartbeat(ctx)
         return 0
 
-    role_run(ctx)
+    sim_prompt = os.environ.get("HACKSIM_SIM_PROMPT", "")
+    try:
+        role_run(ctx, sim_prompt=sim_prompt)
+    except TypeError:
+        # Backwards compatibility: a role.run that does not yet accept
+        # sim_prompt as a keyword argument falls back to the original
+        # signature. Prefer adding the parameter to the role module.
+        role_run(ctx)
     return 0
 
 
