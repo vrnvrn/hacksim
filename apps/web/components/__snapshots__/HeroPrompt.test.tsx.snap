@@ -1,65 +1,77 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
 exports[`HeroPrompt > matches the default snapshot 1`] = `
-bound HTMLFormElement {
-  "0": <textarea
+<form
+  class="mt-6 lg:mt-8"
+>
+  <label
+    class="visually-hidden"
+    for="hero-prompt"
+  >
+    Describe the hackathon you want
+  </label>
+  <textarea
     class="w-full rounded-2xl border border-border focus:border-accent focus:outline-none p-4 text-base min-h-[100px] shadow-sm bg-surface text-ink placeholder:text-muted resize-vertical"
     id="hero-prompt"
     placeholder="an onchain agents hackathon with five sponsors and a $5k pool"
     rows="3"
-  />,
-  "1": <button
-    class="inline-flex items-center gap-2 rounded-md px-5 py-2.5 bg-accent text-white text-sm font-semibold hover:opacity-90 transition disabled:opacity-50"
-    type="submit"
+  />
+  <div
+    class="mt-3 flex flex-wrap items-center gap-3"
   >
-    Spin up sim
-  </button>,
-  "2": <button
-    class="rounded-full border-2 border-ink bg-surface text-ink px-5 py-2.5 text-sm font-semibold hover:bg-ink hover:text-surface transition disabled:opacity-50 disabled:cursor-progress"
-    type="button"
-  >
-    See an example run
-  </button>,
-  "3": <button
-    aria-controls="radix-_r_4_"
-    aria-expanded="false"
-    aria-haspopup="dialog"
-    aria-label="Open simulation settings"
-    class="inline-flex items-center gap-2 text-sm font-medium text-body hover:text-ink transition"
-    data-state="closed"
-    type="button"
-  >
-    <svg
-      aria-hidden="true"
-      class="lucide lucide-settings2 h-4 w-4"
-      fill="none"
-      height="24"
-      stroke="currentColor"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-      stroke-width="2"
-      viewBox="0 0 24 24"
-      width="24"
-      xmlns="http://www.w3.org/2000/svg"
+    <button
+      class="inline-flex items-center gap-2 rounded-md px-5 py-2.5 bg-accent text-white text-sm font-semibold hover:opacity-90 transition disabled:opacity-50"
+      type="submit"
     >
-      <path
-        d="M20 7h-9"
-      />
-      <path
-        d="M14 17H5"
-      />
-      <circle
-        cx="17"
-        cy="17"
-        r="3"
-      />
-      <circle
-        cx="7"
-        cy="7"
-        r="3"
-      />
-    </svg>
-    Settings
-  </button>,
-}
+      Spin up sim
+    </button>
+    <button
+      class="rounded-full border-2 border-ink bg-surface text-ink px-5 py-2.5 text-sm font-semibold hover:bg-ink hover:text-surface transition disabled:opacity-50 disabled:cursor-progress"
+      type="button"
+    >
+      See an example run
+    </button>
+    <button
+      aria-controls="radix-_r_4_"
+      aria-expanded="false"
+      aria-haspopup="dialog"
+      aria-label="Open simulation settings"
+      class="inline-flex items-center gap-2 text-sm font-medium text-body hover:text-ink transition"
+      data-state="closed"
+      type="button"
+    >
+      <svg
+        aria-hidden="true"
+        class="lucide lucide-settings2 h-4 w-4"
+        fill="none"
+        height="24"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        viewBox="0 0 24 24"
+        width="24"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M20 7h-9"
+        />
+        <path
+          d="M14 17H5"
+        />
+        <circle
+          cx="17"
+          cy="17"
+          r="3"
+        />
+        <circle
+          cx="7"
+          cy="7"
+          r="3"
+        />
+      </svg>
+      Settings
+    </button>
+  </div>
+</form>
 `;
