@@ -1,5 +1,8 @@
 # HackSim
 
+[![CI](https://github.com/vrnvrn/hacksim/actions/workflows/ci.yml/badge.svg)](https://github.com/vrnvrn/hacksim/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-purple.svg)](LICENSE)
+
 > Run your own hackathon with agents.
 
 Type one prompt. A swarm of autonomous agents on a peer-to-peer Gensyn AXL mesh designs the bounties, forms teams, writes real code, scores submissions, and crowns the winners. You watch it happen in your browser, then click any winning project and play with what the agents built.
