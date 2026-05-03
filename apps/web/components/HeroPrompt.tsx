@@ -156,7 +156,7 @@ export function HeroPrompt({
                 aria-hidden="true"
                 className="inline-block h-3 w-3 rounded-full border-2 border-white/40 border-t-white animate-spin"
               />
-              Spinning up 15 AXL nodes...
+              Spinning up AXL mesh...
             </>
           ) : (
             "Spin up sim"

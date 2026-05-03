@@ -92,13 +92,12 @@ export function RunLog({
   useEffect(() => {
     const node = containerRef.current;
     if (!node || paused) return;
-    // Auto-scroll to the bottom unless the user is scrolled up by more than
-    // a screen and a half. Treat that as "they are reading history."
-    const distanceFromBottom =
-      node.scrollHeight - node.scrollTop - node.clientHeight;
-    if (distanceFromBottom < node.clientHeight * 1.5) {
-      node.scrollTop = node.scrollHeight;
-    }
+    // Always pin to the bottom on new events. The user opts out by hitting
+    // Pause; that freezes auto-scroll without dropping events. The previous
+    // "scroll only if within 1.5 screens of bottom" heuristic stuck the
+    // pane at the top during fast bursts when the user briefly nudged the
+    // scrollbar mid-stream.
+    node.scrollTop = node.scrollHeight;
   }, [lines, paused]);
 
   // Announce only the most recent envelope to assistive tech, polite.

@@ -65,16 +65,19 @@ function describe(s: {
   expectedVerdicts: number;
   closed: boolean;
 }): { headline: string; detail?: string } {
-  // Pre-spawn state: the controller has been created (snapshot exists with
-  // a prompt and config) but no builder.registered events have fired yet,
-  // which means the AXL nodes are still coming up. Without this branch the
-  // live page sits on "Sponsor agents are drafting their bounties" for the
-  // first ~5 seconds, which reads as drift rather than progress.
-  if (s.phase === 0 && s.builderCount === 0 && s.bounties === 0) {
+  // Pre-spawn / spawning state: the controller has been created (snapshot
+  // exists with a prompt and config) but the builder roster is incomplete,
+  // which means at least one AXL node is still coming up. The boot banner
+  // stays visible until every configured builder has emitted
+  // builder.registered, so the user sees progress through the full ~10s
+  // spawn window rather than flipping to "Sponsor agents are drafting" at
+  // the very first builder event.
+  if (s.phase === 0 && s.builderCount < s.builders && s.bounties === 0) {
+    const total = 1 + s.designers + s.builders + s.judges;
+    const ready = s.builderCount;
     return {
-      headline: "Booting the AXL mesh.",
-      detail:
-        "Spawning 15 AXL Go nodes on loopback, each with its own ed25519 identity. The first builder.registered event arrives in about five seconds; the mesh is fully peered shortly after.",
+      headline: "Spinning up the AXL mesh.",
+      detail: `Spawning ${total} AXL Go nodes on loopback, each with its own ed25519 identity and a Python role worker. ${ready} of ${s.builders} builders registered so far. Bounties post once every sponsor's node has joined the Yggdrasil tree.`,
     };
   }
 
