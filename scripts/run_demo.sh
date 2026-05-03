@@ -10,6 +10,16 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "${REPO_ROOT}"
 
+# Load local secrets from .env if present. Values exported into the
+# environment win over anything inherited from the parent shell. The
+# file is gitignored; .env.example documents the keys we read.
+if [ -f "${REPO_ROOT}/.env" ]; then
+  set -a
+  # shellcheck disable=SC1091
+  . "${REPO_ROOT}/.env"
+  set +a
+fi
+
 VENV_PY="${REPO_ROOT}/.venv/bin/python"
 VENV_UVICORN="${REPO_ROOT}/.venv/bin/uvicorn"
 AXL_BIN="${REPO_ROOT}/third_party/axl/node"

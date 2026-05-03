@@ -315,7 +315,11 @@ def _compose_via_anthropic(
         "prose, just the JSON."
     )
 
-    client = make_client(api_key)
+    # 60s timeout: this call asks for up to 8192 tokens of HTML/CSS/JS,
+    # which Claude haiku 4.5 reliably needs 15-30s to produce. The default
+    # 10s timeout aborted every compose mid-stream, dropped every builder to
+    # the deterministic stub, and submissions arrived after JUDGING closed.
+    client = make_client(api_key, timeout=60.0)
     response = call_with_retry(
         lambda: client.messages.create(
             model=get_model(),

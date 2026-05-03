@@ -54,10 +54,15 @@ def make_client(api_key: str, *, timeout: float = DEFAULT_TIMEOUT_S):
 
     Lazy-imports the SDK so this module stays importable when the SDK is
     missing (CI runs the stub path).
+
+    `max_retries=0` disables the SDK's internal retry loop. `call_with_retry`
+    is our single retry path; without this, the SDK's default of 2 silently
+    triples wall-clock time (one timeout becomes three) and a slow call can
+    exceed the BUILD phase even when a single attempt would have succeeded.
     """
     import anthropic
 
-    return anthropic.Anthropic(api_key=api_key, timeout=timeout)
+    return anthropic.Anthropic(api_key=api_key, timeout=timeout, max_retries=0)
 
 
 def call_with_retry(
